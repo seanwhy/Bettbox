@@ -162,6 +162,11 @@ _NetworkInfo _$NetworkInfoFromJson(Map<String, dynamic> json) => _NetworkInfo(
   dns:
       (json['dns'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  interfaces:
+      (json['interfaces'] as List<dynamic>?)
+          ?.map((e) => NetworkInterfaceInfo.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$NetworkInfoToJson(_NetworkInfo instance) =>
@@ -171,6 +176,7 @@ Map<String, dynamic> _$NetworkInfoToJson(_NetworkInfo instance) =>
       'ip': instance.ip,
       'gateway': instance.gateway,
       'dns': instance.dns,
+      'interfaces': instance.interfaces.map((e) => e.toJson()).toList(),
     };
 
 _CoreInterface _$CoreInterfaceFromJson(Map<String, dynamic> json) =>

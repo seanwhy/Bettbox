@@ -2935,7 +2935,7 @@ as DateTime,
 /// @nodoc
 mixin _$NetworkInfo {
 
- String get type;@JsonKey(name: 'interface') String get interfaceName; String get ip; String get gateway; List<String> get dns;
+ String get type;@JsonKey(name: 'interface') String get interfaceName; String get ip; String get gateway; List<String> get dns; List<NetworkInterfaceInfo> get interfaces;
 /// Create a copy of NetworkInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2949,20 +2949,20 @@ $NetworkInfoCopyWith<NetworkInfo> get copyWith => _$NetworkInfoCopyWithImpl<Netw
 @override
 bool operator ==(Object other) {
   final _this = this as NetworkInfo;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NetworkInfo&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.interfaceName, _this.interfaceName) || other.interfaceName == _this.interfaceName)&&(identical(other.ip, _this.ip) || other.ip == _this.ip)&&(identical(other.gateway, _this.gateway) || other.gateway == _this.gateway)&&const DeepCollectionEquality().equals(other.dns, _this.dns));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NetworkInfo&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.interfaceName, _this.interfaceName) || other.interfaceName == _this.interfaceName)&&(identical(other.ip, _this.ip) || other.ip == _this.ip)&&(identical(other.gateway, _this.gateway) || other.gateway == _this.gateway)&&const DeepCollectionEquality().equals(other.dns, _this.dns)&&const DeepCollectionEquality().equals(other.interfaces, _this.interfaces));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as NetworkInfo;
-  return Object.hash(runtimeType,_this.type,_this.interfaceName,_this.ip,_this.gateway,const DeepCollectionEquality().hash(_this.dns));
+  return Object.hash(runtimeType,_this.type,_this.interfaceName,_this.ip,_this.gateway,const DeepCollectionEquality().hash(_this.dns),const DeepCollectionEquality().hash(_this.interfaces));
 }
 
 @override
 String toString() {
   final _this = this as NetworkInfo;
-  return 'NetworkInfo(type: ${_this.type}, interfaceName: ${_this.interfaceName}, ip: ${_this.ip}, gateway: ${_this.gateway}, dns: ${_this.dns})';
+  return 'NetworkInfo(type: ${_this.type}, interfaceName: ${_this.interfaceName}, ip: ${_this.ip}, gateway: ${_this.gateway}, dns: ${_this.dns}, interfaces: ${_this.interfaces})';
 }
 
 
@@ -2973,7 +2973,7 @@ abstract mixin class $NetworkInfoCopyWith<$Res>  {
   factory $NetworkInfoCopyWith(NetworkInfo value, $Res Function(NetworkInfo) _then) = _$NetworkInfoCopyWithImpl;
 @useResult
 $Res call({
- String type,@JsonKey(name: 'interface') String interfaceName, String ip, String gateway, List<String> dns
+ String type,@JsonKey(name: 'interface') String interfaceName, String ip, String gateway, List<String> dns, List<NetworkInterfaceInfo> interfaces
 });
 
 
@@ -2990,14 +2990,15 @@ class _$NetworkInfoCopyWithImpl<$Res>
 
 /// Create a copy of NetworkInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? interfaceName = null,Object? ip = null,Object? gateway = null,Object? dns = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? interfaceName = null,Object? ip = null,Object? gateway = null,Object? dns = null,Object? interfaces = null,}) {
   return _then(NetworkInfo(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,interfaceName: null == interfaceName ? _self.interfaceName : interfaceName // ignore: cast_nullable_to_non_nullable
 as String,ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
 as String,gateway: null == gateway ? _self.gateway : gateway // ignore: cast_nullable_to_non_nullable
 as String,dns: null == dns ? _self.dns : dns // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,interfaces: null == interfaces ? _self.interfaces : interfaces // ignore: cast_nullable_to_non_nullable
+as List<NetworkInterfaceInfo>,
   ));
 }
 
@@ -3138,7 +3139,7 @@ return $default(_that.type,_that.interfaceName,_that.ip,_that.gateway,_that.dns)
 @JsonSerializable()
 
 class _NetworkInfo implements NetworkInfo {
-  const _NetworkInfo({this.type = '', @JsonKey(name: 'interface') this.interfaceName = '', this.ip = '', this.gateway = '',  List<String> dns = const []}): _dns = dns;
+  const _NetworkInfo({this.type = '', @JsonKey(name: 'interface') this.interfaceName = '', this.ip = '', this.gateway = '',  List<String> dns = const [],  List<NetworkInterfaceInfo> interfaces = const []}): _dns = dns, _interfaces = interfaces;
   factory _NetworkInfo.fromJson(Map<String, dynamic> json) => _$NetworkInfoFromJson(json);
 
 @override@JsonKey() final  String type;
@@ -3150,6 +3151,12 @@ class _NetworkInfo implements NetworkInfo {
   if (_dns is EqualUnmodifiableListView) return _dns;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dns);
+}
+ final  List<NetworkInterfaceInfo> _interfaces;
+@override@JsonKey() List<NetworkInterfaceInfo> get interfaces {
+  if (_interfaces is EqualUnmodifiableListView) return _interfaces;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_interfaces);
 }
 
 
@@ -3166,18 +3173,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NetworkInfo&&(identical(other.type, type) || other.type == type)&&(identical(other.interfaceName, interfaceName) || other.interfaceName == interfaceName)&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.gateway, gateway) || other.gateway == gateway)&&const DeepCollectionEquality().equals(other.dns, _dns));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NetworkInfo&&(identical(other.type, type) || other.type == type)&&(identical(other.interfaceName, interfaceName) || other.interfaceName == interfaceName)&&(identical(other.ip, ip) || other.ip == ip)&&(identical(other.gateway, gateway) || other.gateway == gateway)&&const DeepCollectionEquality().equals(other.dns, _dns)&&const DeepCollectionEquality().equals(other.interfaces, _interfaces));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,type,interfaceName,ip,gateway,const DeepCollectionEquality().hash(_dns));
+    return Object.hash(runtimeType,type,interfaceName,ip,gateway,const DeepCollectionEquality().hash(_dns),const DeepCollectionEquality().hash(_interfaces));
 }
 
 @override
 String toString() {
-    return 'NetworkInfo(type: $type, interfaceName: $interfaceName, ip: $ip, gateway: $gateway, dns: $dns)';
+    return 'NetworkInfo(type: $type, interfaceName: $interfaceName, ip: $ip, gateway: $gateway, dns: $dns, interfaces: $interfaces)';
 }
 
 
@@ -3188,7 +3195,7 @@ abstract mixin class _$NetworkInfoCopyWith<$Res> implements $NetworkInfoCopyWith
   factory _$NetworkInfoCopyWith(_NetworkInfo value, $Res Function(_NetworkInfo) _then) = __$NetworkInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String type,@JsonKey(name: 'interface') String interfaceName, String ip, String gateway, List<String> dns
+ String type,@JsonKey(name: 'interface') String interfaceName, String ip, String gateway, List<String> dns, List<NetworkInterfaceInfo> interfaces
 });
 
 
@@ -3205,14 +3212,15 @@ class __$NetworkInfoCopyWithImpl<$Res>
 
 /// Create a copy of NetworkInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? interfaceName = null,Object? ip = null,Object? gateway = null,Object? dns = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? interfaceName = null,Object? ip = null,Object? gateway = null,Object? dns = null,Object? interfaces = null,}) {
   return _then(_NetworkInfo(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,interfaceName: null == interfaceName ? _self.interfaceName : interfaceName // ignore: cast_nullable_to_non_nullable
 as String,ip: null == ip ? _self.ip : ip // ignore: cast_nullable_to_non_nullable
 as String,gateway: null == gateway ? _self.gateway : gateway // ignore: cast_nullable_to_non_nullable
 as String,dns: null == dns ? _self._dns : dns // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,interfaces: null == interfaces ? _self._interfaces : interfaces // ignore: cast_nullable_to_non_nullable
+as List<NetworkInterfaceInfo>,
   ));
 }
 

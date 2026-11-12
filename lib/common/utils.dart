@@ -1048,6 +1048,29 @@ class Utils {
           )
           .firstOrNull;
       final interfaces = await NetworkInterface.list(includeLoopback: false);
+      final interfaceList = <NetworkInterfaceInfo>[];
+      for (final iface in interfaces) {
+        final nameLower = iface.name.toLowerCase();
+        if (nameLower.contains('tun') ||
+            nameLower.contains('vpn') ||
+            nameLower.contains('tap') ||
+            nameLower.contains('ppp')) {
+          continue;
+        }
+        for (final addr in iface.addresses) {
+          if (addr.isIPv4 && !addr.isLoopback && !addr.isLinkLocal) {
+            final gw = iface.name == route?.interfaceName ? (route?.gateway ?? '') : '';
+            interfaceList.add(
+              NetworkInterfaceInfo(
+                name: iface.name,
+                type: _resolveInterfaceType(iface.name),
+                ip: addr.address,
+                gateway: gw,
+              ),
+            );
+          }
+        }
+      }
       final matchedInterface = interfaces
           .where((interface) => interface.name == route?.interfaceName)
           .firstOrNull;
@@ -1059,12 +1082,14 @@ class Utils {
       final address =
           addresses.where((address) => address.isIPv4).firstOrNull ??
           addresses.firstOrNull;
+      final primaryIp = address?.address ?? (interfaceList.firstOrNull?.ip ?? await getLocalIpAddress() ?? '');
       return NetworkInfo(
         type: await _getConnectivityType(),
-        interfaceName: route?.interfaceName ?? '',
-        ip: address?.address ?? await getLocalIpAddress() ?? '',
-        gateway: route?.gateway ?? '',
+        interfaceName: route?.interfaceName ?? (interfaceList.firstOrNull?.name ?? ''),
+        ip: primaryIp,
+        gateway: route?.gateway ?? (interfaceList.firstOrNull?.gateway ?? ''),
         dns: await _getSystemDns(),
+        interfaces: interfaceList,
       );
     } catch (_) {
       return const NetworkInfo();
@@ -1073,6 +1098,16 @@ class Utils {
 
   Future<bool> isCellularNetwork() async {
     return await _getConnectivityType() == 'Cellular';
+  }
+
+  String _resolveInterfaceType(String name) {
+    final lower = name.toLowerCase();
+    if (lower.startsWith('wl') || lower.contains('wifi')) return 'Wi-Fi';
+    if (lower.startsWith('eth') || lower.startsWith('en')) return 'Ethernet';
+    if (lower.contains('bridge') || lower.startsWith('br') || lower.startsWith('arc_br')) return 'Bridge';
+    if (lower.contains('hotspot') || lower.startsWith('ap')) return 'Hotspot';
+    if (lower.contains('usb') || lower.startsWith('rndis')) return 'USB';
+    return name;
   }
 
   Future<String> _getConnectivityType() async {

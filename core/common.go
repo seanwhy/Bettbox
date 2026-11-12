@@ -2,6 +2,7 @@ package main
 
 import (
 	b "bytes"
+	"net/netip"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -120,9 +121,15 @@ func updateListeners() {
 	listener.PatchInboundListeners(listeners, tunnel.Tunnel, true)
 	listener.SetAllowLan(general.AllowLan)
 	inbound.SetSkipAuthPrefixes(general.SkipAuthPrefixes)
-	inbound.SetAllowedIPs(general.LanAllowedIPs)
-	inbound.SetDisAllowedIPs(general.LanDisAllowedIPs)
-	listener.SetBindAddress(general.BindAddress)
+	if general.AllowLan {
+		inbound.SetAllowedIPs([]netip.Prefix{netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0")})
+		inbound.SetDisAllowedIPs(nil)
+		listener.SetBindAddress("*")
+	} else {
+		inbound.SetAllowedIPs(general.LanAllowedIPs)
+		inbound.SetDisAllowedIPs(general.LanDisAllowedIPs)
+		listener.SetBindAddress(general.BindAddress)
+	}
 	listener.ReCreateHTTP(general.Port, tunnel.Tunnel)
 	listener.ReCreateSocks(general.SocksPort, tunnel.Tunnel)
 	listener.ReCreateRedir(general.RedirPort, tunnel.Tunnel)
@@ -188,6 +195,14 @@ func updateConfig(params *UpdateParams) {
 	wasDebug := general.LogLevel == log.DEBUG
 	if params.MixedPort != nil {
 		general.MixedPort = *params.MixedPort
+	}
+	if params.AllowLan != nil {
+		general.AllowLan = *params.AllowLan
+		if general.AllowLan {
+			general.BindAddress = "*"
+			general.LanAllowedIPs = []netip.Prefix{netip.MustParsePrefix("0.0.0.0/0"), netip.MustParsePrefix("::/0")}
+			general.LanDisAllowedIPs = nil
+		}
 	}
 	if params.Sniffing != nil {
 		general.Sniffing = *params.Sniffing

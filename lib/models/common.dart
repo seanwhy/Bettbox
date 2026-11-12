@@ -294,6 +294,49 @@ extension FileInfoExt on FileInfo {
       '${TrafficValue(value: size).show}  ·  ${lastModified.lastUpdateTimeDesc}';
 }
 
+class NetworkInterfaceInfo {
+  final String name;
+  final String type;
+  final String ip;
+  final String gateway;
+
+  const NetworkInterfaceInfo({
+    this.name = '',
+    this.type = '',
+    this.ip = '',
+    this.gateway = '',
+  });
+
+  factory NetworkInterfaceInfo.fromJson(Map<String, dynamic> json) =>
+      NetworkInterfaceInfo(
+        name: json['name'] as String? ?? '',
+        type: json['type'] as String? ?? '',
+        ip: json['ip'] as String? ?? '',
+        gateway: json['gateway'] as String? ?? '',
+      );
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'type': type,
+        'ip': ip,
+        'gateway': gateway,
+      };
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NetworkInterfaceInfo &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          type == other.type &&
+          ip == other.ip &&
+          gateway == other.gateway;
+
+  @override
+  int get hashCode =>
+      name.hashCode ^ type.hashCode ^ ip.hashCode ^ gateway.hashCode;
+}
+
 @freezed
 abstract class NetworkInfo with _$NetworkInfo {
   const factory NetworkInfo({
@@ -302,10 +345,30 @@ abstract class NetworkInfo with _$NetworkInfo {
     @Default('') String ip,
     @Default('') String gateway,
     @Default([]) List<String> dns,
+    @Default([]) List<NetworkInterfaceInfo> interfaces,
   }) = _NetworkInfo;
 
   factory NetworkInfo.fromJson(Map<String, Object?> json) =>
       _$NetworkInfoFromJson(json);
+}
+
+extension NetworkInfoExt on NetworkInfo {
+  List<NetworkInterfaceInfo> get allInterfaces {
+    if (interfaces.isNotEmpty) {
+      return interfaces;
+    }
+    if (ip.isNotEmpty) {
+      return [
+        NetworkInterfaceInfo(
+          name: interfaceName,
+          type: type,
+          ip: ip,
+          gateway: gateway,
+        ),
+      ];
+    }
+    return const [];
+  }
 }
 
 @freezed

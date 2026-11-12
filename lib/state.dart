@@ -1102,6 +1102,11 @@ class GlobalState {
       'tproxy-port': patchConfig.tproxyPort,
       'find-process-mode': patchConfig.findProcessMode.name,
       'allow-lan': patchConfig.allowLan,
+      'bind-address': patchConfig.allowLan ? '*' : '127.0.0.1',
+      if (patchConfig.allowLan) ...{
+        'lan-allowed-ips': const ['0.0.0.0/0', '::/0'],
+        'lan-disallowed-ips': const <String>[],
+      },
       'authentication': patchConfig.authentication,
       'skip-auth-prefixes':
           hasAuthentication && patchConfig.skipAuthPrefixes.isNotEmpty

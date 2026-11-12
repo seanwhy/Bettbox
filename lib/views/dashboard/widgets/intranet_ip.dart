@@ -399,11 +399,17 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
 
   IconData _resolveNetworkIcon(String type) {
     final lower = type.toLowerCase();
-    if (lower.contains('ethernet')) {
+    if (lower.contains('ethernet') || lower.contains('bridge')) {
       return Icons.lan_rounded;
     }
     if (lower.contains('cellular')) {
       return Icons.signal_cellular_alt_rounded;
+    }
+    if (lower.contains('hotspot') || lower.contains('ap')) {
+      return Icons.wifi_tethering_rounded;
+    }
+    if (lower.contains('usb')) {
+      return Icons.usb_rounded;
     }
     return Icons.wifi_rounded;
   }
@@ -431,6 +437,7 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
     final canOpenGateway = _canOpenGateway(gateway, type);
     final sharedAddress = '$localIp:$mixedPort';
     final systemDnsText = network?.dns.join(', ') ?? '';
+    final allInterfaces = network?.allInterfaces ?? const [];
 
     return CommonDialog(
       title: appLocalizations.moreIpInfo,
@@ -502,23 +509,52 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
             ),
             _buildSectionHeader(appLocalizations.allowLan),
             _buildLanSharingTile(allowLan),
-            if (allowLan && canOpenGateway && localIp.isNotEmpty) ...[
+            if (allowLan) ...[
               const SizedBox(height: 8),
-              _buildStatTile(
-                icon: Icons.cable_rounded,
-                iconColor: context.colorScheme.primary,
-                value: sharedAddress,
-                action: _buildIconButton(
-                  icon: Icons.copy_rounded,
-                  tooltip: appLocalizations.copy,
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: sharedAddress));
-                    if (context.mounted) {
-                      context.showNotifier(appLocalizations.copySuccess);
-                    }
-                  },
+              if (allInterfaces.isNotEmpty)
+                ...allInterfaces.map((iface) {
+                  final addr = '${iface.ip}:$mixedPort';
+                  final label = iface.name.isNotEmpty &&
+                          iface.type.isNotEmpty &&
+                          iface.name.toLowerCase() != iface.type.toLowerCase()
+                      ? '${iface.type} (${iface.name})'
+                      : (iface.type.isNotEmpty ? iface.type : iface.name);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: _buildStatTile(
+                      icon: _resolveNetworkIcon(iface.type),
+                      iconColor: context.colorScheme.primary,
+                      label: label,
+                      value: addr,
+                      action: _buildIconButton(
+                        icon: Icons.copy_rounded,
+                        tooltip: appLocalizations.copy,
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: addr));
+                          if (context.mounted) {
+                            context.showNotifier(appLocalizations.copySuccess);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                })
+              else if (localIp.isNotEmpty)
+                _buildStatTile(
+                  icon: Icons.cable_rounded,
+                  iconColor: context.colorScheme.primary,
+                  value: sharedAddress,
+                  action: _buildIconButton(
+                    icon: Icons.copy_rounded,
+                    tooltip: appLocalizations.copy,
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: sharedAddress));
+                      if (context.mounted) {
+                        context.showNotifier(appLocalizations.copySuccess);
+                      }
+                    },
+                  ),
                 ),
-              ),
             ],
           ],
         ),
