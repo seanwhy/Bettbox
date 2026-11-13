@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/pages/toolbox/common.dart';
-import 'package:bett_box/pages/toolbox/iperf.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/pages/toolbox/common.dart';
+import 'package:why_box/pages/toolbox/iperf.dart';
+import 'package:why_box/state.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -41,7 +41,7 @@ void main() {
     expect(target?.port, 5202);
     expect(target?.name, '客厅 电视');
     expect(parseIperfLink('https://example.com'), isNull);
-    expect(parseIperfLink('bettbox://iperf?port=5201'), isNull);
+    expect(parseIperfLink('whybox://iperf?port=5201'), isNull);
   });
 
   test('解析内核推送的状态', () {

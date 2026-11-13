@@ -1,8 +1,8 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/widgets/scroll.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/widgets/scroll.dart';
 import 'package:material_ui/material_ui.dart';
 
 class BaseScrollBehavior extends MaterialScrollBehavior {

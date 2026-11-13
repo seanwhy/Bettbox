@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:math' as math;
 
-import 'package:bett_box/clash/core.dart';
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/plugins/app.dart';
-import 'package:bett_box/providers/providers.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/views/tools.dart';
+import 'package:why_box/clash/core.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/plugins/app.dart';
+import 'package:why_box/providers/providers.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/views/tools.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,11 +1,11 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/providers/providers.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/views/logs.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/providers/providers.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/views/logs.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -196,7 +196,7 @@ void main() {
     expect(uri.host, 'www.google.com');
     expect(uri.path, '/search');
     expect(uri.queryParameters, {
-      'q': '分析Bettbox(Mihomo)日志:Geodata Loader mode: memconservative',
+      'q': '分析WhyBox(Mihomo)日志:Geodata Loader mode: memconservative',
       'udm': '50',
     });
   });

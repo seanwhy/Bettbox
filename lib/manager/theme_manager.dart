@@ -1,9 +1,9 @@
 import 'dart:math';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/common/theme.dart';
-import 'package:bett_box/providers/config.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/common/theme.dart';
+import 'package:why_box/providers/config.dart';
+import 'package:why_box/state.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/providers/config.dart';
-import 'package:bett_box/widgets/dialog.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/providers/config.dart';
+import 'package:why_box/widgets/dialog.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';

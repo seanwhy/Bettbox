@@ -1,10 +1,10 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/pages/home.dart';
-import 'package:bett_box/providers/providers.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/pages/home.dart';
+import 'package:why_box/providers/providers.dart';
+import 'package:why_box/state.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -1,12 +1,12 @@
 import 'dart:math';
 import 'dart:ui' as ui;
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/plugins/app.dart';
-import 'package:bett_box/providers/config.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/plugins/app.dart';
+import 'package:why_box/providers/config.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';

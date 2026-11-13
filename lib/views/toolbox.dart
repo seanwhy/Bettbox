@@ -1,8 +1,8 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/pages/pages.dart';
-import 'package:bett_box/providers/providers.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/pages/pages.dart';
+import 'package:why_box/providers/providers.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 

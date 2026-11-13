@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/widgets/fade_box.dart';
-import 'package:bett_box/widgets/text.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/widgets/fade_box.dart';
+import 'package:why_box/widgets/text.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _lightShadows = [

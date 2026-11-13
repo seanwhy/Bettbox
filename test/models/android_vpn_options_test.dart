@@ -1,8 +1,8 @@
 import 'dart:convert';
 
-import 'package:bett_box/manager/vpn_manager.dart';
-import 'package:bett_box/models/clash_config.dart';
-import 'package:bett_box/models/core.dart';
+import 'package:why_box/manager/vpn_manager.dart';
+import 'package:why_box/models/clash_config.dart';
+import 'package:why_box/models/core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

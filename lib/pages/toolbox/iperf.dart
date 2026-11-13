@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:bett_box/clash/clash.dart';
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/pages/scan.dart';
-import 'package:bett_box/providers/providers.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/clash/clash.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/pages/scan.dart';
+import 'package:why_box/providers/providers.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -27,7 +27,7 @@ String buildIperfLink({
   required int port,
   required String name,
 }) => Uri(
-  scheme: 'bettbox',
+  scheme: 'whybox',
   host: 'iperf',
   queryParameters: {
     'addr': hosts.join(','),
@@ -38,7 +38,7 @@ String buildIperfLink({
 
 IperfTarget? parseIperfLink(String value) {
   final uri = Uri.tryParse(value.trim());
-  if (uri == null || uri.scheme != 'bettbox' || uri.host != 'iperf') {
+  if (uri == null || uri.scheme != 'whybox' || uri.host != 'iperf') {
     return null;
   }
   final hosts = (uri.queryParameters['addr'] ?? '')

@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
-import 'package:bett_box/plugins/app.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/plugins/app.dart';
+import 'package:why_box/state.dart';
 
 import 'system.dart';
 

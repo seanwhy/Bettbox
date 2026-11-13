@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:bett_box/clash/core.dart';
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/clash/core.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/state.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -17,7 +17,7 @@ void main() {
 
   void setVersion(String version, String buildNumber) {
     globalState.packageInfo = PackageInfo(
-      appName: 'Bettbox',
+      appName: 'WhyBox',
       packageName: 'test',
       version: version,
       buildNumber: buildNumber,

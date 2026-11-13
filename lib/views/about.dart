@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/providers/config.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/providers/config.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -36,28 +36,6 @@ class AboutView extends StatelessWidget {
   List<Widget> _buildMoreSection(BuildContext context) {
     final links = [
       _LinkTile(
-        title: 'Github Releases',
-        icon: Icons.star,
-        onTap: () =>
-            globalState.openUrl('https://github.com/appshubcc/Bettbox'),
-      ),
-      _LinkTile(
-        title: appLocalizations.checkUpdate,
-        icon: Icons.refresh,
-        external: false,
-        onTap: () => _checkUpdate(context),
-      ),
-      _LinkTile(
-        title: 'Telegram Group',
-        icon: Icons.forum_outlined,
-        onTap: () => globalState.openUrl('https://t.me/bettbox_chat'),
-      ),
-      _LinkTile(
-        title: 'Channel',
-        icon: Icons.campaign_outlined,
-        onTap: () => globalState.openUrl('https://t.me/appshub_channel'),
-      ),
-      _LinkTile(
         prefix: 'Forked from',
         title: 'FlClash',
         icon: Icons.code,
@@ -70,12 +48,21 @@ class AboutView extends StatelessWidget {
         icon: Icons.memory,
         onTap: () => globalState.openUrl('https://github.com/MetaCubeX/mihomo'),
       ),
+      _LinkTile(
+        title: appLocalizations.checkUpdate,
+        icon: Icons.refresh,
+        external: false,
+        onTap: () => _checkUpdate(context),
+      ),
     ];
     return generateSection(
       title: appLocalizations.more,
       items: [
         for (var i = 0; i < links.length; i += 2)
-          _LinkGridRow(left: links[i], right: links[i + 1]),
+          _LinkGridRow(
+            left: links[i],
+            right: i + 1 < links.length ? links[i + 1] : null,
+          ),
       ],
     );
   }
@@ -396,28 +383,31 @@ class _ContributorsRowState extends State<_ContributorsRow> {
 
 class _LinkGridRow extends StatelessWidget {
   final _LinkTile left;
-  final _LinkTile right;
+  final _LinkTile? right;
 
-  const _LinkGridRow({required this.left, required this.right});
+  const _LinkGridRow({required this.left, this.right});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = context.colorScheme;
+    final right = this.right;
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(child: left),
-          VerticalDivider(
-            width: 1,
-            thickness: 1,
-            indent: 10,
-            endIndent: 10,
-            color: colorScheme.outlineVariant.withValues(
-              alpha: colorScheme.brightness == Brightness.light ? 0.6 : 0.45,
+          if (right != null) ...[
+            VerticalDivider(
+              width: 1,
+              thickness: 1,
+              indent: 10,
+              endIndent: 10,
+              color: colorScheme.outlineVariant.withValues(
+                alpha: colorScheme.brightness == Brightness.light ? 0.6 : 0.45,
+              ),
             ),
-          ),
-          Expanded(child: right),
+            Expanded(child: right),
+          ],
         ],
       ),
     );

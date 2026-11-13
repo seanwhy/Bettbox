@@ -5,11 +5,11 @@ import 'dart:isolate';
 import 'dart:ui';
 
 import 'package:ffi/ffi.dart';
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/plugins/service.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/plugins/service.dart';
+import 'package:why_box/state.dart';
 
 import 'generated/clash_ffi.dart';
 import 'interface.dart';

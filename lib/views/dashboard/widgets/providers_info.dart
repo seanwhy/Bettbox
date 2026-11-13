@@ -1,6 +1,6 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/views/resources.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/views/resources.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 class ProvidersInfo extends StatelessWidget {

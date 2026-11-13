@@ -1,9 +1,9 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/views/connection/item.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/views/connection/item.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +43,7 @@ void main() {
       start: DateTime(2026),
       metadata: const Metadata(
         process: 'app',
-        processPath: '/tmp/bettbox-test/missing-app',
+        processPath: '/tmp/whybox-test/missing-app',
       ),
       chains: const ['DIRECT'],
       rule: '',

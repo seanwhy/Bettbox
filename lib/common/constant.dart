@@ -2,10 +2,10 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:collection/collection.dart';
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/state.dart';
 import 'package:material_ui/material_ui.dart';
 
 const appName = AppIdentity.displayName;
@@ -15,7 +15,7 @@ const tunDeviceName = AppIdentity.tunDeviceName;
 const browserUa =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36';
 const packageName = AppIdentity.packageId;
-final unixSocketPath = '/tmp/BettboxSocket_${Random().nextInt(10000)}.sock';
+final unixSocketPath = '/tmp/WhyBoxSocket_${Random().nextInt(10000)}.sock';
 const maxTextScale = 1.4;
 const minTextScale = 0.8;
 final baseInfoEdgeInsets = EdgeInsets.symmetric(
@@ -47,7 +47,7 @@ const customSidebarIconKey = 'custom_sidebar_icon';
 const customDashboardTitleKey = 'custom_dashboard_title';
 const lastManagedScriptVersionKey = 'last_managed_script_version';
 const double dialogCommonWidth = 300;
-const repository = 'appshubcc/Bettbox';
+const repository = 'seanwhy/Bettbox';
 const ipInfoToken = String.fromEnvironment('IPINFO_TOKEN', defaultValue: '');
 const defaultExternalController = '127.0.0.1:9090';
 const maxMobileWidth = 600;
@@ -132,9 +132,9 @@ const defaultPrimaryColor = 0xFF00897B;
 const maxLength = 1024;
 const maxLogLength = 512;
 
-final mainIsolate = 'BettboxMainIsolate';
+final mainIsolate = 'WhyBoxMainIsolate';
 
-final serviceIsolate = 'BettboxServiceIsolate';
+final serviceIsolate = 'WhyBoxServiceIsolate';
 
 const defaultPrimaryColors = [
   0xFF1E293B,

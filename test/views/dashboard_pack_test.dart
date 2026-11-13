@@ -1,5 +1,5 @@
-import 'package:bett_box/views/dashboard/dashboard.dart';
-import 'package:bett_box/widgets/grid.dart';
+import 'package:why_box/views/dashboard/dashboard.dart';
+import 'package:why_box/widgets/grid.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 

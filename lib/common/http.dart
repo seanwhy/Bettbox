@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:bett_box/state.dart';
+import 'package:why_box/state.dart';
 
-class BettboxHttpOverrides extends HttpOverrides {
+class WhyBoxHttpOverrides extends HttpOverrides {
   static bool _isLoopback(String host) {
     if (host.isEmpty || host.toLowerCase() == 'localhost') return true;
     return InternetAddress.tryParse(host)?.isLoopback ?? false;

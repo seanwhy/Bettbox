@@ -1,10 +1,10 @@
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/common/theme.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/views/dashboard/widgets/media_unlock.dart';
-import 'package:bett_box/views/dashboard/widgets/media_unlock_small.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/common/theme.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/views/dashboard/widgets/media_unlock.dart';
+import 'package:why_box/views/dashboard/widgets/media_unlock_small.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

@@ -1,13 +1,13 @@
 import 'dart:math' as math;
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/controller.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/l10n/l10n.dart';
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/state.dart';
-import 'package:bett_box/views/proxies/list.dart';
-import 'package:bett_box/widgets/widgets.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/controller.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/l10n/l10n.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/state.dart';
+import 'package:why_box/views/proxies/list.dart';
+import 'package:why_box/widgets/widgets.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

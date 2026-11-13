@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:bett_box/clash/clash.dart';
-import 'package:bett_box/common/path.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/models.dart';
+import 'package:why_box/clash/clash.dart';
+import 'package:why_box/common/path.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/models.dart';
 import 'package:synchronized/synchronized.dart';
 
 class SpeedTestStore {

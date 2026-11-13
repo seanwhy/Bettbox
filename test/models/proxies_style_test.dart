@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:bett_box/common/constant.dart';
-import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/models/config.dart';
-import 'package:bett_box/models/profile.dart';
+import 'package:why_box/common/constant.dart';
+import 'package:why_box/enum/enum.dart';
+import 'package:why_box/models/config.dart';
+import 'package:why_box/models/profile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

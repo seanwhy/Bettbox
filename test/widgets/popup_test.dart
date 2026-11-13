@@ -1,5 +1,5 @@
-import 'package:bett_box/models/models.dart';
-import 'package:bett_box/widgets/popup.dart';
+import 'package:why_box/models/models.dart';
+import 'package:why_box/widgets/popup.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 

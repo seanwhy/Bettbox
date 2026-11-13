@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:bett_box/common/common.dart';
-import 'package:bett_box/state.dart';
+import 'package:why_box/common/common.dart';
+import 'package:why_box/state.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:screen_retriever/screen_retriever.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -17,6 +17,7 @@ class Window {
       protocol.register('clashmeta');
       protocol.register('flclash');
       protocol.register('bettbox');
+      protocol.register('whybox');
     }
     await windowManager.ensureInitialized();
     if (system.isMacOS && !globalState.config.appSetting.keepDockIcon) {
