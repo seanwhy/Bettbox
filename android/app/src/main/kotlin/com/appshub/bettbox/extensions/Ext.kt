@@ -50,9 +50,21 @@ fun Metadata.getProtocol(): Int? = when {
     else -> null
 }
 
-fun VpnOptions.getIpv4RouteAddress(): List<CIDR> = routeAddress.filter { it.isIpv4() }.map { it.toCIDR() }
+private fun List<String>?.toCidrs(predicate: (String) -> Boolean): List<CIDR> =
+    orEmpty().mapNotNull { entry ->
+        runCatching {
+            val trimmed = entry.trim()
+            if (trimmed.isNotEmpty() && predicate(trimmed)) trimmed.toCIDR() else null
+        }.getOrNull()
+    }
 
-fun VpnOptions.getIpv6RouteAddress(): List<CIDR> = routeAddress.filter { it.isIpv6() }.map { it.toCIDR() }
+fun VpnOptions.getIpv4RouteAddress(): List<CIDR> = routeAddress.toCidrs { it.isIpv4() }
+
+fun VpnOptions.getIpv6RouteAddress(): List<CIDR> = routeAddress.toCidrs { it.isIpv6() }
+
+fun VpnOptions.getIpv4RouteExcludeAddress(): List<CIDR> = routeExcludeAddress.toCidrs { it.isIpv4() }
+
+fun VpnOptions.getIpv6RouteExcludeAddress(): List<CIDR> = routeExcludeAddress.toCidrs { it.isIpv6() }
 
 fun String.isIpv4(): Boolean {
     val parts = split("/")

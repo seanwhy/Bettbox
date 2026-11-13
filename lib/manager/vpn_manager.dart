@@ -3,10 +3,26 @@ import 'dart:async';
 import 'package:bett_box/common/common.dart';
 import 'package:bett_box/enum/enum.dart';
 import 'package:bett_box/providers/app.dart';
+import 'package:bett_box/providers/config.dart';
 import 'package:bett_box/providers/state.dart';
 import 'package:bett_box/state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+typedef VpnRuntimeConfig = ({bool allowLan, int mixedPort, bool ipv6});
+
+/// Whether a Clash config change requires prompting the user to restart Android VPN.
+@visibleForTesting
+bool shouldNotifyVpnConfigRestart({
+  required bool isAndroid,
+  required bool vpnEnabled,
+  required VpnRuntimeConfig? prev,
+  required VpnRuntimeConfig next,
+}) {
+  if (!isAndroid || !vpnEnabled || prev == null || prev == next) return false;
+  return true;
+}
 
 class VpnManager extends ConsumerStatefulWidget {
   final Widget child;
@@ -61,6 +77,25 @@ class _VpnContainerState extends ConsumerState<VpnManager> {
 
       showTip();
     });
+    ref.listenManual(
+      patchClashConfigProvider.select(
+        (state) => (
+          allowLan: state.allowLan,
+          mixedPort: state.mixedPort,
+          ipv6: state.ipv6,
+        ),
+      ),
+      (prev, next) {
+        if (shouldNotifyVpnConfigRestart(
+          isAndroid: system.isAndroid,
+          vpnEnabled: ref.read(vpnSettingProvider).enable,
+          prev: prev,
+          next: next,
+        )) {
+          showTip();
+        }
+      },
+    );
     ref.listenManual(currentProfileProvider.select((state) => state?.label), (
       prev,
       next,

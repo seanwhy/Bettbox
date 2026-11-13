@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.IpPrefix
 import android.net.ProxyInfo
 import android.net.VpnService
 import android.os.Binder
@@ -17,9 +18,12 @@ import androidx.core.app.NotificationCompat
 import com.appshub.bettbox.GlobalState
 import com.appshub.bettbox.core.Core
 import com.appshub.bettbox.extensions.getIpv4RouteAddress
+import com.appshub.bettbox.extensions.getIpv4RouteExcludeAddress
 import com.appshub.bettbox.extensions.getIpv6RouteAddress
+import com.appshub.bettbox.extensions.getIpv6RouteExcludeAddress
 import com.appshub.bettbox.extensions.toCIDR
 import com.appshub.bettbox.models.AccessControlMode
+import com.appshub.bettbox.models.CIDR
 import com.appshub.bettbox.models.VpnOptions
 import com.appshub.bettbox.plugins.VpnPlugin
 import com.appshub.bettbox.R
@@ -109,6 +113,7 @@ class BettboxVpnService : VpnService(), BaseServiceInterface {
                 addRoute("0.0.0.0", 0)
             }
         } ?: addRoute("0.0.0.0", 0)
+        applyExcludeRoutes(options.getIpv4RouteExcludeAddress(), "IPv4")
 
         if (options.ipv6Address.isNotEmpty()) {
             runCatching {
@@ -122,6 +127,7 @@ class BettboxVpnService : VpnService(), BaseServiceInterface {
                 } else {
                     addRoute("::", 0)
                 }
+                applyExcludeRoutes(options.getIpv6RouteExcludeAddress(), "IPv6")
             }.onFailure { Log.d("addAddress6", "IPv6 is not supported.") }
         }
 
@@ -132,20 +138,28 @@ class BettboxVpnService : VpnService(), BaseServiceInterface {
 
         setMtu(options.mtu.takeIf { it in 1280..65535 } ?: 9000)
 
+        // Exclude Bettbox from its own VPN so accepted inbound proxy sockets
+        // (e.g. LAN or Android Terminal VM clients) are not routed back into TUN.
         val accessControl = options.accessControl
         if (accessControl.enable) {
             when (accessControl.mode) {
                 AccessControlMode.acceptSelected -> {
-                    (accessControl.acceptList + packageName).filter { it.isNotBlank() }.distinct().forEach { appPkg ->
-                        runCatching { addAllowedApplication(appPkg) }
-                            .onFailure { Log.e(TAG, "Failed to allow package $appPkg: ${it.message}", it) }
+                    val allowedApps = (accessControl.acceptList - packageName)
+                        .filter { it.isNotBlank() }
+                        .distinct()
+                    if (allowedApps.isNotEmpty()) {
+                        applyPackageRules(allowedApps, "allow") { addAllowedApplication(it) }
+                    } else {
+                        applyPackageRules(listOf(packageName), "disallow") { addDisallowedApplication(it) }
                     }
                 }
-                AccessControlMode.rejectSelected -> (accessControl.rejectList - packageName).filter { it.isNotBlank() }.distinct().forEach { appPkg ->
-                    runCatching { addDisallowedApplication(appPkg) }
-                        .onFailure { Log.e(TAG, "Failed to disallow package $appPkg: ${it.message}", it) }
-                }
+                AccessControlMode.rejectSelected -> applyPackageRules(
+                    accessControl.rejectList + packageName,
+                    "disallow",
+                ) { addDisallowedApplication(it) }
             }
+        } else {
+            applyPackageRules(listOf(packageName), "disallow") { addDisallowedApplication(it) }
         }
 
         setSession("Bettbox")
@@ -167,6 +181,28 @@ class BettboxVpnService : VpnService(), BaseServiceInterface {
         }
         Log.e(TAG, "Establish VPN rejected by system")
         -1
+    }
+
+    private fun applyPackageRules(
+        packages: Iterable<String>,
+        action: String,
+        apply: (String) -> Unit,
+    ) {
+        packages.filter { it.isNotBlank() }.distinct().forEach { appPkg ->
+            runCatching { apply(appPkg) }
+                .onFailure { Log.e(TAG, "Failed to $action package $appPkg: ${it.message}", it) }
+        }
+    }
+
+    private fun Builder.applyExcludeRoutes(excludes: List<CIDR>, familyLabel: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        excludes.forEach { cidr ->
+            runCatching {
+                excludeRoute(IpPrefix(cidr.address, cidr.prefixLength))
+            }.onFailure {
+                Log.e(TAG, "Failed to exclude $familyLabel route ${cidr.address.hostAddress}/${cidr.prefixLength}: ${it.message}")
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

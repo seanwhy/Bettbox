@@ -187,26 +187,7 @@ func handleGetAndroidVpnOptions() string {
 		log.Warnln("[APP] handleGetAndroidVpnOptions called before setupConfig")
 		return ""
 	}
-	ipv6Address := ""
-	if currentConfig.General.IPv6 {
-		ipv6Address = state.DefaultIpv6Address
-	}
-	options := state.AndroidVpnOptions{
-		Enable:                state.CurrentState.VpnProps.Enable,
-		Port:                  currentConfig.General.MixedPort,
-		Ipv4Address:           state.DefaultIpv4Address,
-		Ipv6Address:           ipv6Address,
-		AccessControl:         state.CurrentState.VpnProps.AccessControl,
-		SystemProxy:           state.CurrentState.VpnProps.SystemProxy,
-		AllowBypass:           state.CurrentState.VpnProps.AllowBypass || currentConfig.General.AllowLan,
-		RouteAddress:          currentConfig.General.Tun.RouteAddress,
-		RouteMode:             state.CurrentState.VpnProps.RouteMode,
-		BypassDomain:          state.CurrentState.BypassDomain,
-		DnsServerAddress:      state.GetDnsServerAddress(),
-		DozeSuspend:           state.CurrentState.VpnProps.DozeSuspend,
-		DisableIcmpForwarding: currentConfig.General.Tun.DisableICMPForwarding,
-		Mtu:                   uint32(currentConfig.General.Tun.MTU),
-	}
+	options := buildAndroidVpnOptions(state.CurrentState, currentConfig)
 	data, err := json.Marshal(options)
 	if err != nil {
 		fmt.Println("Error:", err)

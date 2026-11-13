@@ -85,6 +85,30 @@ const defaultDesktopBypassPrivateRouteAddress = [
   'fe80::/10',
 ];
 
+const defaultAndroidRouteExcludeAddress = [
+  '127.0.0.0/8',
+  '10.0.0.0/8',
+  '100.64.0.0/10',
+  '169.254.0.0/16',
+  '172.16.0.0/12',
+  '192.168.0.0/16',
+  '224.0.0.0/4',
+  '255.255.255.255/32',
+  '::1/128',
+  'fc00::/7',
+  'fe80::/10',
+  'ff00::/8',
+];
+
+bool _stringListsEqual(List<String> a, List<String> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 int? _parseInt(dynamic value) {
   if (value == null) return null;
   if (value is num) return value.toInt();
@@ -324,15 +348,19 @@ extension TunExt on Tun {
     String? fakeIpRange,
     String? fakeIpRangeV6,
     List<String>? bypassPrivateRouteAddress,
+    bool? isDesktop,
+    bool? isLinux,
   }) {
-    if (system.isDesktop) {
+    final effectiveIsDesktop = isDesktop ?? system.isDesktop;
+    final effectiveIsLinux = isLinux ?? system.isLinux;
+    if (effectiveIsDesktop) {
       final dnsMode = dnsHijack.isNotEmpty
           ? TunDnsMode.hijack
           : TunDnsMode.disabled;
       if (bypassPrivateRoute) {
         return copyWith(
           autoRoute: true,
-          autoRedirect: system.isLinux,
+          autoRedirect: effectiveIsLinux,
           dnsMode: dnsMode,
           routeAddress: [],
           routeExcludeAddress:
@@ -342,7 +370,7 @@ extension TunExt on Tun {
       }
       return copyWith(
         autoRoute: true,
-        autoRedirect: system.isLinux,
+        autoRedirect: effectiveIsLinux,
         dnsMode: dnsMode,
         routeAddress: [],
         routeExcludeAddress: [],
@@ -350,15 +378,31 @@ extension TunExt on Tun {
     }
 
     if (bypassPrivateRoute) {
+      final effectiveRoutes = List<String>.from(
+        bypassPrivateRouteAddress ?? defaultBypassPrivateRouteAddress,
+      );
+      final usesDefaultRoutes =
+          bypassPrivateRouteAddress == null ||
+          _stringListsEqual(
+            bypassPrivateRouteAddress,
+            defaultBypassPrivateRouteAddress,
+          );
+      final effectiveExcludes = usesDefaultRoutes
+          ? {...routeExcludeAddress, ...defaultAndroidRouteExcludeAddress}
+                .toList()
+          : List<String>.from(routeExcludeAddress);
       return copyWith(
         autoRoute: true,
-        routeAddress: List<String>.from(
-          bypassPrivateRouteAddress ?? defaultBypassPrivateRouteAddress,
-        ),
+        routeAddress: effectiveRoutes,
+        routeExcludeAddress: effectiveExcludes,
       );
     }
 
-    return copyWith(autoRoute: true, routeAddress: []);
+    return copyWith(
+      autoRoute: true,
+      routeAddress: [],
+      routeExcludeAddress: List<String>.from(routeExcludeAddress),
+    );
   }
 }
 
