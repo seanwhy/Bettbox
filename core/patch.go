@@ -290,6 +290,9 @@ func restrictProfileServices(raw *config.RawConfig, defaults *config.RawConfig) 
 	}
 	raw.Listeners = listeners
 	if raw.AllowLan {
+		raw.BindAddress = "*"
+		raw.LanAllowedIPs = defaults.LanAllowedIPs
+		raw.LanDisAllowedIPs = nil
 		return
 	}
 	for i := range raw.Tunnels {

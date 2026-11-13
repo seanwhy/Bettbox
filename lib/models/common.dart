@@ -294,6 +294,27 @@ extension FileInfoExt on FileInfo {
       '${TrafficValue(value: size).show}  ·  ${lastModified.lastUpdateTimeDesc}';
 }
 
+List<String> _stringListFromJson(Object? raw) {
+  if (raw is! List) return const [];
+  return [
+    for (final item in raw)
+      if (item != null && item.toString().isNotEmpty) item.toString(),
+  ];
+}
+
+List<NetworkInterfaceInfo> _networkInterfacesFromJson(Object? raw) {
+  if (raw is! List) return const [];
+  final result = <NetworkInterfaceInfo>[];
+  for (final item in raw) {
+    if (item is NetworkInterfaceInfo) {
+      result.add(item);
+    } else if (item is Map) {
+      result.add(NetworkInterfaceInfo.fromJson(item));
+    }
+  }
+  return result;
+}
+
 class NetworkInterfaceInfo {
   final String name;
   final String type;
@@ -307,12 +328,12 @@ class NetworkInterfaceInfo {
     this.gateway = '',
   });
 
-  factory NetworkInterfaceInfo.fromJson(Map<String, dynamic> json) =>
+  factory NetworkInterfaceInfo.fromJson(Map<Object?, Object?> json) =>
       NetworkInterfaceInfo(
-        name: json['name'] as String? ?? '',
-        type: json['type'] as String? ?? '',
-        ip: json['ip'] as String? ?? '',
-        gateway: json['gateway'] as String? ?? '',
+        name: json['name']?.toString() ?? '',
+        type: json['type']?.toString() ?? '',
+        ip: json['ip']?.toString() ?? '',
+        gateway: json['gateway']?.toString() ?? '',
       );
 
   Map<String, dynamic> toJson() => {
@@ -344,8 +365,10 @@ abstract class NetworkInfo with _$NetworkInfo {
     @JsonKey(name: 'interface') @Default('') String interfaceName,
     @Default('') String ip,
     @Default('') String gateway,
-    @Default([]) List<String> dns,
-    @Default([]) List<NetworkInterfaceInfo> interfaces,
+    @Default([]) @JsonKey(fromJson: _stringListFromJson) List<String> dns,
+    @Default([])
+    @JsonKey(fromJson: _networkInterfacesFromJson)
+    List<NetworkInterfaceInfo> interfaces,
   }) = _NetworkInfo;
 
   factory NetworkInfo.fromJson(Map<String, Object?> json) =>

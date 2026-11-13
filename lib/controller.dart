@@ -1742,6 +1742,7 @@ class AppController {
         }),
       );
     }
+    unawaited(updateLocalNetwork(silent: true));
     _ref.read(initProvider.notifier).value = true;
   }
 

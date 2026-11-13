@@ -159,14 +159,10 @@ _NetworkInfo _$NetworkInfoFromJson(Map<String, dynamic> json) => _NetworkInfo(
   interfaceName: json['interface'] as String? ?? '',
   ip: json['ip'] as String? ?? '',
   gateway: json['gateway'] as String? ?? '',
-  dns:
-      (json['dns'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
-  interfaces:
-      (json['interfaces'] as List<dynamic>?)
-          ?.map((e) => NetworkInterfaceInfo.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList() ??
-      const [],
+  dns: json['dns'] == null ? const [] : _stringListFromJson(json['dns']),
+  interfaces: json['interfaces'] == null
+      ? const []
+      : _networkInterfacesFromJson(json['interfaces']),
 );
 
 Map<String, dynamic> _$NetworkInfoToJson(_NetworkInfo instance) =>

@@ -1031,35 +1031,79 @@ class Utils {
     return result..sort((a, b) => a.name.compareTo(b.name));
   }
 
+  Map<String, dynamic> _normalizeNetworkInfoMap(Map<Object?, Object?> raw) {
+    final normalized = <String, dynamic>{};
+    raw.forEach((key, value) {
+      if (key == null) return;
+      final k = key.toString();
+      if (value is Map) {
+        normalized[k] = _normalizeNetworkInfoMap(value);
+      } else if (value is List) {
+        normalized[k] = value
+            .map((item) => item is Map ? _normalizeNetworkInfoMap(item) : item)
+            .toList();
+      } else {
+        normalized[k] = value;
+      }
+    });
+    return normalized;
+  }
+
   Future<NetworkInfo> getNetworkInfo() async {
     try {
       if (system.isAndroid) {
         final info = await const MethodChannel(
           'service',
         ).invokeMapMethod<String, Object?>('getNetworkInfo');
-        return info == null ? const NetworkInfo() : NetworkInfo.fromJson(info);
+        return info == null
+            ? const NetworkInfo()
+            : NetworkInfo.fromJson(_normalizeNetworkInfoMap(info));
       }
-      final routes = await _getDefaultRoutes();
-      final route = routes
+      final routes = await _getDefaultRoutes().catchError((Object e) {
+        commonPrint.warn('getNetworkInfo routes error: $e');
+        return const <_DefaultRoute>[];
+      });
+      final physicalRoutes = routes
           .where(
             (route) =>
                 route.gateway != '0.0.0.0' &&
                 !_virtualInterfaceRegExp.hasMatch(route.interfaceName),
           )
-          .firstOrNull;
-      final interfaces = await NetworkInterface.list(includeLoopback: false);
+          .toList();
+      final route = physicalRoutes.firstOrNull;
+      final routeGateways = <String, String>{};
+      for (final r in physicalRoutes) {
+        if (r.interfaceName.isNotEmpty && r.gateway.isNotEmpty) {
+          routeGateways.putIfAbsent(r.interfaceName, () => r.gateway);
+          routeGateways.putIfAbsent(
+            r.interfaceName.toLowerCase(),
+            () => r.gateway,
+          );
+        }
+      }
+
+      final interfaces = await NetworkInterface.list(includeLoopback: false)
+          .catchError((Object e) {
+            commonPrint.warn('getNetworkInfo interfaces error: $e');
+            return const <NetworkInterface>[];
+          });
       final interfaceList = <NetworkInterfaceInfo>[];
       for (final iface in interfaces) {
         final nameLower = iface.name.toLowerCase();
         if (nameLower.contains('tun') ||
             nameLower.contains('vpn') ||
-            nameLower.contains('tap') ||
-            nameLower.contains('ppp')) {
+            nameLower.contains('ppp') ||
+            nameLower.contains('meta') ||
+            nameLower.contains('clash') ||
+            nameLower.contains(tunDeviceName.toLowerCase())) {
           continue;
         }
+        final gw = routeGateways[iface.name] ?? routeGateways[nameLower] ?? '';
         for (final addr in iface.addresses) {
-          if (addr.isIPv4 && !addr.isLoopback && !addr.isLinkLocal) {
-            final gw = iface.name == route?.interfaceName ? (route?.gateway ?? '') : '';
+          if (addr.isIPv4 &&
+              !addr.isLoopback &&
+              !addr.isLinkLocal &&
+              !addr.address.startsWith('198.18.')) {
             interfaceList.add(
               NetworkInterfaceInfo(
                 name: iface.name,
@@ -1071,9 +1115,17 @@ class Utils {
           }
         }
       }
-      final matchedInterface = interfaces
-          .where((interface) => interface.name == route?.interfaceName)
-          .firstOrNull;
+      final routeIfaceName = route?.interfaceName ?? '';
+      final matchedInterface = routeIfaceName.isEmpty
+          ? null
+          : interfaces
+                .where(
+                  (interface) =>
+                      interface.name == routeIfaceName ||
+                      interface.name.toLowerCase() ==
+                          routeIfaceName.toLowerCase(),
+                )
+                .firstOrNull;
       final Iterable<InternetAddress> addresses =
           matchedInterface?.addresses.where(
             (address) => !address.isLinkLocal,
@@ -1082,16 +1134,32 @@ class Utils {
       final address =
           addresses.where((address) => address.isIPv4).firstOrNull ??
           addresses.firstOrNull;
-      final primaryIp = address?.address ?? (interfaceList.firstOrNull?.ip ?? await getLocalIpAddress() ?? '');
+      final primaryIp =
+          address?.address ??
+          (interfaceList.firstOrNull?.ip ?? await getLocalIpAddress() ?? '');
+      final connectivityType = await _getConnectivityType();
+      final primaryIfaceName = routeIfaceName.isNotEmpty
+          ? routeIfaceName
+          : (interfaceList.firstOrNull?.name ?? '');
+      final resolvedType = connectivityType.isNotEmpty
+          ? connectivityType
+          : (primaryIfaceName.isNotEmpty
+                ? _resolveInterfaceType(primaryIfaceName)
+                : (interfaceList.firstOrNull?.type ?? ''));
+      final systemDns = await _getSystemDns().catchError((Object e) {
+        commonPrint.warn('getNetworkInfo dns error: $e');
+        return const <String>[];
+      });
       return NetworkInfo(
-        type: await _getConnectivityType(),
-        interfaceName: route?.interfaceName ?? (interfaceList.firstOrNull?.name ?? ''),
+        type: resolvedType,
+        interfaceName: primaryIfaceName,
         ip: primaryIp,
         gateway: route?.gateway ?? (interfaceList.firstOrNull?.gateway ?? ''),
-        dns: await _getSystemDns(),
+        dns: systemDns,
         interfaces: interfaceList,
       );
-    } catch (_) {
+    } catch (e) {
+      commonPrint.error('getNetworkInfo error: $e');
       return const NetworkInfo();
     }
   }
@@ -1102,10 +1170,36 @@ class Utils {
 
   String _resolveInterfaceType(String name) {
     final lower = name.toLowerCase();
-    if (lower.startsWith('wl') || lower.contains('wifi')) return 'Wi-Fi';
-    if (lower.startsWith('eth') || lower.startsWith('en')) return 'Ethernet';
-    if (lower.contains('bridge') || lower.startsWith('br') || lower.startsWith('arc_br')) return 'Bridge';
-    if (lower.contains('hotspot') || lower.startsWith('ap')) return 'Hotspot';
+    if (lower.startsWith('wlan') ||
+        lower.startsWith('wl') ||
+        lower.contains('wi-fi') ||
+        lower.contains('wifi')) {
+      return 'Wi-Fi';
+    }
+    if (lower.startsWith('vethernet') ||
+        lower.contains('bridge') ||
+        lower.startsWith('br') ||
+        lower.startsWith('arc_br') ||
+        lower.startsWith('virbr') ||
+        lower.startsWith('veth') ||
+        lower.startsWith('vmnet') ||
+        lower.startsWith('vbox') ||
+        lower.startsWith('docker') ||
+        lower.startsWith('avf') ||
+        lower.startsWith('crosvm')) {
+      return 'Bridge';
+    }
+    if (lower.startsWith('eth') ||
+        lower.startsWith('en') ||
+        lower.contains('ethernet') ||
+        lower.contains('以太网')) {
+      return 'Ethernet';
+    }
+    if (lower.contains('hotspot') ||
+        lower.startsWith('ap') ||
+        lower.startsWith('softap')) {
+      return 'Hotspot';
+    }
     if (lower.contains('usb') || lower.startsWith('rndis')) return 'USB';
     return name;
   }
@@ -1205,7 +1299,7 @@ class Utils {
         if (parts.length < 3) continue;
         if (parts[1] != '00000000') continue; // default route destination
         final gwHex = parts[2];
-        if (gwHex == '00000000') continue; // no gateway
+        if (gwHex == '00000000' || gwHex.length != 8) continue; // no gateway
         // /proc/net/route stores IPv4 in little-endian hex
         final bytes = [
           int.parse(gwHex.substring(6, 8), radix: 16),

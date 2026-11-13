@@ -262,10 +262,17 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private fun resolveInterfaceType(name: String): String {
         val lower = name.lowercase()
         return when {
-            lower.startsWith("wlan") -> "Wi-Fi"
+            lower.startsWith("wlan") || lower.startsWith("wl") -> "Wi-Fi"
             lower.startsWith("eth") || lower.startsWith("en") -> "Ethernet"
             lower.startsWith("rmnet") || lower.startsWith("ccmni") || lower.startsWith("pdp") -> "Cellular"
-            lower.startsWith("arc_br") || lower.startsWith("br") || lower.startsWith("virbr") || lower.startsWith("veth") -> "Bridge"
+            lower.startsWith("arc_br") ||
+                lower.startsWith("br") ||
+                lower.startsWith("virbr") ||
+                lower.startsWith("veth") ||
+                lower.startsWith("avf") ||
+                lower.startsWith("crosvm") ||
+                lower.startsWith("vm") ||
+                lower.startsWith("tap") -> "Bridge"
             lower.startsWith("ap") || lower.startsWith("softap") -> "Hotspot"
             lower.startsWith("rndis") || lower.startsWith("usb") -> "USB"
             else -> name
@@ -279,55 +286,86 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
         // 1. Collect from ConnectivityManager allNetworks
         cm?.allNetworks?.forEach { net ->
-            val caps = cm.getNetworkCapabilities(net)
-            if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true) return@forEach
-            val type = physicalTransports.firstOrNull { caps?.hasTransport(it.first) == true }?.second ?: ""
-            val link = cm.getLinkProperties(net)
-            val ifaceName = link?.interfaceName.orEmpty()
-            val gateway = link?.routes
-                ?.filter { it.isDefaultRoute() }
-                ?.mapNotNull { it.gateway }
-                ?.firstOrNull { it is Inet4Address && !it.isAnyLocalAddress }
-                ?.hostAddress.orEmpty()
+            runCatching {
+                val caps = cm.getNetworkCapabilities(net)
+                if (caps?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true) return@runCatching
+                val type = physicalTransports.firstOrNull { caps?.hasTransport(it.first) == true }?.second ?: ""
+                val link = cm.getLinkProperties(net)
+                val ifaceName = link?.interfaceName.orEmpty()
+                val gateway = link?.routes
+                    ?.filter { it.isDefaultRoute() }
+                    ?.mapNotNull { it.gateway }
+                    ?.firstOrNull { it is Inet4Address && !it.isAnyLocalAddress }
+                    ?.hostAddress.orEmpty()
 
-            link?.linkAddresses?.forEach { linkAddr ->
-                val addr = linkAddr.address
-                if (addr is Inet4Address && !addr.isLoopbackAddress && !addr.isLinkLocalAddress && !addr.isAnyLocalAddress) {
-                    val ipStr = addr.hostAddress ?: return@forEach
-                    if (seenIps.add(ipStr)) {
-                        result.add(
-                            mapOf(
-                                "name" to ifaceName,
-                                "type" to (if (type.isNotEmpty()) type else resolveInterfaceType(ifaceName)),
-                                "ip" to ipStr,
-                                "gateway" to gateway,
+                link?.linkAddresses?.forEach { linkAddr ->
+                    val addr = linkAddr.address
+                    if (addr is Inet4Address &&
+                        !addr.isLoopbackAddress &&
+                        !addr.isLinkLocalAddress &&
+                        !addr.isAnyLocalAddress
+                    ) {
+                        val ipStr = addr.hostAddress ?: return@forEach
+                        if (seenIps.add(ipStr)) {
+                            result.add(
+                                mapOf(
+                                    "name" to ifaceName,
+                                    "type" to (if (type.isNotEmpty()) type else resolveInterfaceType(ifaceName)),
+                                    "ip" to ipStr,
+                                    "gateway" to gateway,
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
         }
 
-        // 2. Also query java.net.NetworkInterface for VM bridge (e.g. arc_br0 / 10.183.3.26), USB, Hotspot, etc.
-        val nifs = java.net.NetworkInterface.getNetworkInterfaces()
+        // 2. Also query java.net.NetworkInterface for VM bridge (e.g. arc_br0 / avf / crosvm), USB, Hotspot, etc.
+        val nifs = runCatching { java.net.NetworkInterface.getNetworkInterfaces() }.getOrNull()
         if (nifs != null) {
             for (nif in Collections.list(nifs)) {
-                val name = nif.name.lowercase()
-                if (nif.isLoopback || !nif.isUp) continue
-                if (name.startsWith("tun") || name.startsWith("dummy") || name.startsWith("sit") || name.startsWith("p2p")) continue
+                runCatching {
+                    val rawName = nif.name ?: return@runCatching
+                    val name = rawName.lowercase()
+                    if (name == "lo" ||
+                        name.startsWith("tun") ||
+                        name.startsWith("dummy") ||
+                        name.startsWith("sit") ||
+                        name.startsWith("p2p") ||
+                        name.startsWith("ip_vti") ||
+                        name.startsWith("ip6_vti") ||
+                        name.startsWith("ip6tnl") ||
+                        name.startsWith("gre") ||
+                        name.startsWith("ifb")
+                    ) {
+                        return@runCatching
+                    }
+                    if (runCatching { nif.isLoopback }.getOrDefault(false)) return@runCatching
+                    // On Android 11+ (targetSdk 36), SIOCGIFFLAGS (isUp) can throw SocketException under SELinux;
+                    // only skip when explicitly known to be down.
+                    val isUp = runCatching { nif.isUp }.getOrNull()
+                    if (isUp == false) return@runCatching
 
-                for (addr in Collections.list(nif.inetAddresses)) {
-                    if (addr is Inet4Address && !addr.isLoopbackAddress && !addr.isLinkLocalAddress && !addr.isAnyLocalAddress) {
-                        val ipStr = addr.hostAddress ?: continue
-                        if (seenIps.add(ipStr)) {
-                            result.add(
-                                mapOf(
-                                    "name" to nif.name,
-                                    "type" to resolveInterfaceType(nif.name),
-                                    "ip" to ipStr,
-                                    "gateway" to "",
+                    val addrs = runCatching { Collections.list(nif.inetAddresses) }.getOrNull()
+                        ?: return@runCatching
+                    for (addr in addrs) {
+                        if (addr is Inet4Address &&
+                            !addr.isLoopbackAddress &&
+                            !addr.isLinkLocalAddress &&
+                            !addr.isAnyLocalAddress
+                        ) {
+                            val ipStr = addr.hostAddress ?: continue
+                            if (seenIps.add(ipStr)) {
+                                result.add(
+                                    mapOf(
+                                        "name" to rawName,
+                                        "type" to resolveInterfaceType(rawName),
+                                        "ip" to ipStr,
+                                        "gateway" to "",
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -371,7 +409,7 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
         getLanNetworks().flatMap { network ->
             connectivity?.getLinkProperties(network)
                 ?.linkAddresses
-                ?.mapNotNull { it.address }
+                ?.map { it.address }
                 ?.filter { !it.isLoopbackAddress && it.hostAddress?.contains(":") == false }
                 ?.mapNotNull { it.hostAddress }
                 ?: emptyList()
@@ -437,25 +475,52 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             ?.firstOrNull { it is Inet4Address && !it.isAnyLocalAddress }
 
         val allInterfaces = getAllNetworkInterfaces()
-        val primaryType = (physicalTransports.firstOrNull { caps?.hasTransport(it.first) == true }?.second)
-            ?: allInterfaces.firstOrNull()?.get("type")
+        val fallbackIface = allInterfaces.firstOrNull { it["type"] != "Cellular" }
+            ?: allInterfaces.firstOrNull()
+
+        val primaryType = physicalTransports
+            .firstOrNull { caps?.hasTransport(it.first) == true }
+            ?.second
+            ?.takeIf { it.isNotEmpty() }
+            ?: fallbackIface?.get("type")?.takeIf { it.isNotEmpty() }
             ?: ""
-        val primaryInterface = (link?.interfaceName)
-            ?: allInterfaces.firstOrNull()?.get("name")
+        val primaryInterface = link?.interfaceName
+            ?.takeIf { it.isNotEmpty() }
+            ?: fallbackIface?.get("name")?.takeIf { it.isNotEmpty() }
             ?: ""
-        val primaryIp = ((addresses.firstOrNull { it is Inet4Address } ?: addresses.firstOrNull())?.hostAddress)
-            ?: allInterfaces.firstOrNull()?.get("ip")
+        val primaryIp = (addresses.firstOrNull { it is Inet4Address } ?: addresses.firstOrNull())
+            ?.hostAddress
+            ?.takeIf { it.isNotEmpty() }
+            ?: fallbackIface?.get("ip")?.takeIf { it.isNotEmpty() }
             ?: ""
-        val primaryGateway = (gateway?.hostAddress)
-            ?: allInterfaces.firstOrNull()?.get("gateway")
+        val primaryGateway = gateway?.hostAddress
+            ?.takeIf { it.isNotEmpty() }
+            ?: fallbackIface?.get("gateway")?.takeIf { it.isNotEmpty() }
             ?: ""
+
+        val primaryDns = link?.dnsServers
+            ?.mapNotNull { it.hostAddress }
+            ?.filter { it.isNotEmpty() }
+            .orEmpty()
+            .ifEmpty {
+                cm?.allNetworks
+                    ?.filter { net ->
+                        cm.getNetworkCapabilities(net)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) != true
+                    }
+                    ?.flatMap { net ->
+                        cm.getLinkProperties(net)?.dnsServers?.mapNotNull { it.hostAddress }.orEmpty()
+                    }
+                    ?.filter { it.isNotEmpty() }
+                    ?.distinct()
+                    .orEmpty()
+            }
 
         mapOf(
             "type" to primaryType,
             "interface" to primaryInterface,
             "ip" to primaryIp,
             "gateway" to primaryGateway,
-            "dns" to link?.dnsServers?.mapNotNull { it.hostAddress }.orEmpty(),
+            "dns" to primaryDns,
             "interfaces" to allInterfaces,
         )
     }.getOrElse {

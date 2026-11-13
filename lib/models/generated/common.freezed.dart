@@ -2935,7 +2935,7 @@ as DateTime,
 /// @nodoc
 mixin _$NetworkInfo {
 
- String get type;@JsonKey(name: 'interface') String get interfaceName; String get ip; String get gateway; List<String> get dns; List<NetworkInterfaceInfo> get interfaces;
+ String get type;@JsonKey(name: 'interface') String get interfaceName; String get ip; String get gateway;@JsonKey(fromJson: _stringListFromJson) List<String> get dns;@JsonKey(fromJson: _networkInterfacesFromJson) List<NetworkInterfaceInfo> get interfaces;
 /// Create a copy of NetworkInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -3139,7 +3139,7 @@ return $default(_that.type,_that.interfaceName,_that.ip,_that.gateway,_that.dns)
 @JsonSerializable()
 
 class _NetworkInfo implements NetworkInfo {
-  const _NetworkInfo({this.type = '', @JsonKey(name: 'interface') this.interfaceName = '', this.ip = '', this.gateway = '',  List<String> dns = const [],  List<NetworkInterfaceInfo> interfaces = const []}): _dns = dns, _interfaces = interfaces;
+  const _NetworkInfo({this.type = '', @JsonKey(name: 'interface') this.interfaceName = '', this.ip = '', this.gateway = '', @JsonKey(fromJson: _stringListFromJson)  List<String> dns = const [], @JsonKey(fromJson: _networkInterfacesFromJson)  List<NetworkInterfaceInfo> interfaces = const []}): _dns = dns, _interfaces = interfaces;
   factory _NetworkInfo.fromJson(Map<String, dynamic> json) => _$NetworkInfoFromJson(json);
 
 @override@JsonKey() final  String type;
@@ -3147,13 +3147,13 @@ class _NetworkInfo implements NetworkInfo {
 @override@JsonKey() final  String ip;
 @override@JsonKey() final  String gateway;
  final  List<String> _dns;
-@override@JsonKey() List<String> get dns {
+@override@JsonKey(fromJson: _stringListFromJson) List<String> get dns {
   if (_dns is EqualUnmodifiableListView) return _dns;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_dns);
 }
  final  List<NetworkInterfaceInfo> _interfaces;
-@override@JsonKey() List<NetworkInterfaceInfo> get interfaces {
+@override@JsonKey(fromJson: _networkInterfacesFromJson) List<NetworkInterfaceInfo> get interfaces {
   if (_interfaces is EqualUnmodifiableListView) return _interfaces;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_interfaces);

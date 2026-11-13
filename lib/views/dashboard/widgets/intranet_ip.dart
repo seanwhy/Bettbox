@@ -415,6 +415,28 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
     return Icons.wifi_rounded;
   }
 
+  String _formatInterfaceLabel(NetworkInterfaceInfo iface) {
+    if (iface.name.isNotEmpty &&
+        iface.type.isNotEmpty &&
+        iface.name.toLowerCase() != iface.type.toLowerCase()) {
+      return '${iface.type} (${iface.name})';
+    }
+    return iface.type.isNotEmpty ? iface.type : iface.name;
+  }
+
+  Widget _buildCopyButton(BuildContext context, String text) {
+    return _buildIconButton(
+      icon: Icons.copy_rounded,
+      tooltip: appLocalizations.copy,
+      onPressed: () async {
+        await Clipboard.setData(ClipboardData(text: text));
+        if (context.mounted) {
+          context.showNotifier(appLocalizations.copySuccess);
+        }
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final network = ref.watch(localNetworkProvider);
@@ -439,6 +461,13 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
     final sharedAddress = '$localIp:$mixedPort';
     final systemDnsText = network?.dns.join(', ') ?? '';
     final allInterfaces = network?.allInterfaces ?? const [];
+    final extraInterfaces = allInterfaces
+        .where(
+          (iface) =>
+              iface.ip != localIp ||
+              (iface.gateway.isNotEmpty && iface.gateway != gateway),
+        )
+        .toList();
 
     return CommonDialog(
       title: appLocalizations.moreIpInfo,
@@ -508,6 +537,29 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
                 ),
               ),
             ),
+            if (extraInterfaces.isNotEmpty) ...[
+              for (final iface in extraInterfaces) ...[
+                const SizedBox(height: 8),
+                _buildStatTile(
+                  icon: _resolveNetworkIcon(iface.type),
+                  iconColor: context.colorScheme.secondary,
+                  label: _formatInterfaceLabel(iface),
+                  value: iface.gateway.isNotEmpty
+                      ? '${iface.ip} · ${appLocalizations.defaultGateway} ${iface.gateway}'
+                      : iface.ip,
+                  action: iface.gateway.isNotEmpty &&
+                          _canOpenGateway(iface.gateway, iface.type)
+                      ? _buildIconButton(
+                          icon: Icons.open_in_new,
+                          tooltip: appLocalizations.openRouterAdmin,
+                          onPressed: () {
+                            globalState.openUrl('http://${iface.gateway}');
+                          },
+                        )
+                      : null,
+                ),
+              ],
+            ],
             _buildSectionHeader(appLocalizations.allowLan),
             _buildLanSharingTile(allowLan),
             if (allowLan) ...[
@@ -515,28 +567,14 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
               if (allInterfaces.isNotEmpty)
                 ...allInterfaces.map((iface) {
                   final addr = '${iface.ip}:$mixedPort';
-                  final label = iface.name.isNotEmpty &&
-                          iface.type.isNotEmpty &&
-                          iface.name.toLowerCase() != iface.type.toLowerCase()
-                      ? '${iface.type} (${iface.name})'
-                      : (iface.type.isNotEmpty ? iface.type : iface.name);
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: _buildStatTile(
                       icon: _resolveNetworkIcon(iface.type),
                       iconColor: context.colorScheme.primary,
-                      label: label,
+                      label: _formatInterfaceLabel(iface),
                       value: addr,
-                      action: _buildIconButton(
-                        icon: Icons.copy_rounded,
-                        tooltip: appLocalizations.copy,
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: addr));
-                          if (context.mounted) {
-                            context.showNotifier(appLocalizations.copySuccess);
-                          }
-                        },
-                      ),
+                      action: _buildCopyButton(context, addr),
                     ),
                   );
                 })
@@ -545,16 +583,7 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
                   icon: Icons.cable_rounded,
                   iconColor: context.colorScheme.primary,
                   value: sharedAddress,
-                  action: _buildIconButton(
-                    icon: Icons.copy_rounded,
-                    tooltip: appLocalizations.copy,
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: sharedAddress));
-                      if (context.mounted) {
-                        context.showNotifier(appLocalizations.copySuccess);
-                      }
-                    },
-                  ),
+                  action: _buildCopyButton(context, sharedAddress),
                 ),
             ],
           ],
