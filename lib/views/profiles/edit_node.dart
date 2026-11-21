@@ -209,7 +209,8 @@ class EditNodeView extends ConsumerStatefulWidget {
 }
 
 class EditNodeViewState extends ConsumerState<EditNodeView> {
-  late ProxyNode? _node = widget.node;
+  late List<ProxyNode> _nodes = widget.node == null ? const [] : [widget.node!];
+  ProxyNode? get _node => _nodes.length == 1 ? _nodes.first : null;
   late final ProxyNode _initial =
       widget.node ?? const ProxyNode(id: '', proxy: {});
   late NodeRole _role = _initial.role;
@@ -253,10 +254,9 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
   }
 
   String? get _udpCheckFront {
-    final node = _node;
-    if (node == null ||
+    if (_nodes.isEmpty ||
         _role != NodeRole.landing ||
-        !_udpTransportTypes.contains(node.type.toLowerCase())) {
+        !_nodes.any((n) => _udpTransportTypes.contains(n.type.toLowerCase()))) {
       return null;
     }
     return _currentBinding?.front;
@@ -279,26 +279,33 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
   }
 
   Future<void> _loadManaged() async {
-    final name = _node?.name;
+    final names = [for (final item in _nodes) item.name];
+    final singleName = names.length == 1 ? names.first : null;
     final props = ref.read(managedSettingProvider);
     final catalog = (await ManagedScript.catalog()).catalog;
     final script = await ManagedScript.script(
       props.copyWith(routes: const [], order: const []),
-      nodeNames: [?name],
+      nodeNames: names,
     );
     final data = await JavaScriptRuntimeManager.extractScriptOptions(script);
     final (:options, icons: _, :policyGroupOptions) = processScriptOptions(
       data,
       script,
     );
-    if (!mounted || _node?.name != name) return;
+    if (!mounted ||
+        _nodes.length != names.length ||
+        (singleName != null && _node?.name != singleName)) {
+      return;
+    }
     final minimal = options['极简国内外分流模式'] == true;
     final regions = minimal
         ? const <String>[]
         : managedRegions(catalog, props.regions, props.customRegions);
     final nodeRegions = data['nodeRegions'];
-    final matched = nodeRegions is Map && nodeRegions[name] is List
-        ? (nodeRegions[name] as List).whereType<String>().toSet()
+    final matched = singleName != null &&
+            nodeRegions is Map &&
+            nodeRegions[singleName] is List
+        ? (nodeRegions[singleName] as List).whereType<String>().toSet()
         : const <String>{};
     final services = minimal
         ? const <String>{}
@@ -332,48 +339,78 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
   }
 
   void handleSave() {
-    final node = _node;
-    if (node == null) return;
+    if (_nodes.isEmpty) return;
     final profile = ref.read(currentProfileProvider);
-    final nodes = ref.read(nodesProvider);
-    final saved = nodes.any((item) => item.id == node.id);
-    final latest = nodes.firstWhere(
-      (item) => item.id == node.id,
-      orElse: () => node,
-    );
-    final bindings = {...latest.bindings};
-    if (profile != null && !profile.isManaged) {
-      if (_binding case final binding?) {
-        bindings[profile.id] = binding;
-      } else {
-        bindings.remove(profile.id);
-      }
-    }
-    final updated = latest.copyWith(
-      role: _role,
-      managedEnable: _managedEnable,
-      managed: _managed,
-      bindings: bindings,
-    );
+    final existingNodes = ref.read(nodesProvider);
     final notifier = ref.read(nodesProvider.notifier);
-    if (saved) {
-      notifier.setNode(updated);
+
+    ProxyNode applyConfig(ProxyNode source) {
+      final bindings = {...source.bindings};
+      if (profile != null && !profile.isManaged) {
+        if (_binding case final binding?) {
+          bindings[profile.id] = binding;
+        } else {
+          bindings.remove(profile.id);
+        }
+      }
+      return source.copyWith(
+        role: _role,
+        managedEnable: _managedEnable,
+        managed: _managed,
+        bindings: bindings,
+      );
+    }
+
+    if (_nodes.length == 1) {
+      final node = _nodes.first;
+      final saved = existingNodes.any((item) => item.id == node.id);
+      final latest = existingNodes.firstWhere(
+        (item) => item.id == node.id,
+        orElse: () => node,
+      );
+      final updated = applyConfig(latest);
+      if (saved) {
+        notifier.setNode(updated);
+      } else {
+        notifier.add([updated]);
+      }
     } else {
-      notifier.add([updated]);
+      notifier.add([for (final item in _nodes) applyConfig(item)]);
     }
     Navigator.of(context).pop();
   }
 
   Future<void> _handleAdd() async {
-    final node = await showAddNodeSheet(context);
-    if (node == null || !mounted) return;
+    final result = await showAddNodeSheet(context);
+    if (result == null || result.nodes.isEmpty || !mounted) return;
+    if (result.directSave) {
+      final batch = [
+        for (final item in result.nodes) item.copyWith(role: NodeRole.regular),
+      ];
+      ref.read(nodesProvider.notifier).add(batch);
+      Navigator.of(context).pop();
+      return;
+    }
     setState(() {
-      _node = node;
+      _nodes = result.nodes;
       _tested = false;
       _delay = null;
     });
     unawaited(_loadManaged());
-    widget.ready.value = true;
+    widget.ready.value = _nodes.isNotEmpty;
+  }
+
+  void _handleRemoveBatchNode(String id) {
+    setState(() {
+      _nodes = [
+        for (final item in _nodes)
+          if (item.id != id) item,
+      ];
+      _tested = false;
+      _delay = null;
+    });
+    widget.ready.value = _nodes.isNotEmpty;
+    unawaited(_loadManaged());
   }
 
   void _handleEdit(ProxyNode current) {
@@ -391,7 +428,7 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
           );
           if (node == null) return;
           if (mounted) {
-            setState(() => _node = node);
+            setState(() => _nodes = [node]);
             unawaited(_loadManaged());
           }
           if (editorContext.mounted) Navigator.of(editorContext).pop();
@@ -431,7 +468,7 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
     final front = await showFrontPicker(
       selected: _binding?.front ?? '',
       groups: ref.read(currentGroupsStateProvider).value,
-      excluded: {?_node?.name},
+      excluded: {for (final item in _nodes) item.name},
     );
     final binding = _binding;
     if (front == null || binding == null || !mounted) return;
@@ -521,8 +558,7 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
   }
 
   Widget _buildNode() {
-    final node = _node;
-    if (node == null) {
+    if (_nodes.isEmpty) {
       return CommonCard(
         type: CommonCardType.filled,
         child: ListItem(
@@ -534,6 +570,71 @@ class EditNodeViewState extends ConsumerState<EditNodeView> {
         ),
       );
     }
+    if (_nodes.length > 1) {
+      final scheme = context.colorScheme;
+      return CommonCard(
+        type: CommonCardType.filled,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListItem(
+              title: Text(
+                '${appLocalizations.selectedNodesTitle} (${_nodes.length})',
+              ),
+              trailing: TextButton(
+                onPressed: _handleAdd,
+                child: Text(appLocalizations.reselectNodes),
+              ),
+            ),
+            _buildDivider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final item in _nodes)
+                    Material(
+                      color: scheme.surfaceContainerHigh,
+                      shape: const StadiumBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 6, 6, 6),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            EmojiText(
+                              '${item.name} · ${item.typeLabel}',
+                              style: context.textTheme.labelMedium?.copyWith(
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () => _handleRemoveBatchNode(item.id),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: AppIcon(
+                                  Icons.close,
+                                  size: 16,
+                                  color: scheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    final node = _nodes.first;
     return CommonCard(
       type: CommonCardType.filled,
       child: Column(

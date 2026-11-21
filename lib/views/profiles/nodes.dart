@@ -15,6 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'edit_node.dart';
+import 'node_picker.dart';
+
+export 'node_picker.dart' show NodeImportResult;
 
 final _plainScalar = RegExp(r'^[A-Za-z_./@][A-Za-z0-9_./@ -]*$');
 const _reservedScalars = {'true', 'false', 'null', 'yes', 'no', 'on', 'off'};
@@ -84,8 +87,8 @@ void showEditNode(BuildContext context, [ProxyNode? node]) {
   );
 }
 
-Future<ProxyNode?> showAddNodeSheet(BuildContext context) {
-  return showSheet<ProxyNode>(
+Future<NodeImportResult?> showAddNodeSheet(BuildContext context) {
+  return showSheet<NodeImportResult>(
     context: context,
     builder: (_, type) => AdaptiveSheetScaffold(
       type: type,
@@ -98,19 +101,40 @@ Future<ProxyNode?> showAddNodeSheet(BuildContext context) {
 class AddNodeView extends StatelessWidget {
   const AddNodeView({super.key});
 
-  Future<ProxyNode?> _parse(String text) {
+  Future<List<Map<String, dynamic>>?> _parseList(String text) {
     return globalState.appController.safeRun(
-      () => globalState.appController.parseNode(text),
+      () => globalState.appController.parseProxyList(text),
       needLoading: true,
       silence: false,
       title: appLocalizations.addNode,
     );
   }
 
+  Future<void> _finishWithProxies(
+    BuildContext context,
+    List<Map<String, dynamic>> proxies,
+  ) async {
+    if (proxies.isEmpty || !context.mounted) return;
+    if (proxies.length == 1) {
+      final nodes = globalState.appController.buildNodesFromProxies(proxies);
+      Navigator.of(context).pop(NodeImportResult(nodes: nodes));
+      return;
+    }
+    final picked = await showNodePickerSheet(context, proxies);
+    if (picked == null || picked.nodes.isEmpty || !context.mounted) return;
+    Navigator.of(context).pop(picked);
+  }
+
   Future<void> _import(BuildContext context, String text) async {
-    final node = await _parse(text);
-    if (node == null || !context.mounted) return;
-    Navigator.of(context).pop(node);
+    final proxies = await _parseList(text);
+    if (proxies == null || !context.mounted) return;
+    await _finishWithProxies(context, proxies);
+  }
+
+  Future<void> _handleFromProfile(BuildContext context) async {
+    final content = await showProfileYamlPicker(context);
+    if (content == null || content.trim().isEmpty || !context.mounted) return;
+    await _import(context, content);
   }
 
   Future<void> _handleClipboard(BuildContext context) async {
@@ -151,10 +175,11 @@ class AddNodeView extends StatelessWidget {
         content: '',
         languages: const [],
         onSave: (editorContext, _, content) async {
-          final node = await _parse(content);
-          if (node == null) return;
+          final proxies = await _parseList(content);
+          if (proxies == null || proxies.isEmpty) return;
           if (editorContext.mounted) Navigator.of(editorContext).pop();
-          if (context.mounted) Navigator.of(context).pop(node);
+          if (!context.mounted) return;
+          await _finishWithProxies(context, proxies);
         },
       ),
       maintainState: false,
@@ -196,7 +221,7 @@ class AddNodeView extends StatelessWidget {
       title: title,
     );
     if (node == null || !context.mounted) return;
-    Navigator.of(context).pop(node);
+    Navigator.of(context).pop(NodeImportResult(nodes: [node]));
   }
 
   Widget _buildDivider(BuildContext context) {
@@ -245,6 +270,13 @@ class AddNodeView extends StatelessWidget {
                 title: Text(appLocalizations.file),
                 subtitle: Text(appLocalizations.nodeFileDesc),
                 onTap: () => _handleFile(context),
+              ),
+              divider,
+              ListItem(
+                leading: const AppIcon(Icons.description_outlined),
+                title: Text(appLocalizations.nodeFromProfile),
+                subtitle: Text(appLocalizations.nodeFromProfileDesc),
+                onTap: () => _handleFromProfile(context),
               ),
               divider,
               ListItem(

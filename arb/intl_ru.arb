@@ -1323,5 +1323,17 @@
   "findProcessOffDesc": "Правила процессов перестают действовать, эффективнее",
   "externalControllerPort": "Порт внешнего управления",
   "appNotInstalled": "Приложение не установлено",
-  "fileNotFound": "Файл больше не существует"
+  "fileNotFound": "Файл больше не существует",
+  "nodeFromProfile": "Extract from Profile",
+  "nodeFromProfileDesc": "Filter and extract nodes from an imported profile",
+  "selectNodes": "Select Nodes",
+  "allProtocols": "All",
+  "nodeExistsTag": "Exists",
+  "directBatchImport": "Import Directly",
+  "configureAndImport": "Configure & Import",
+  "selectAndConfigure": "Select & Configure",
+  "selectedNodesTitle": "Selected Nodes",
+  "reselectNodes": "Reselect",
+  "nodeSearchHint": "Search name, server or cipher",
+  "noMatchingNodes": "No matching nodes"
 }

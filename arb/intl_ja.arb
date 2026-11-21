@@ -1319,5 +1319,17 @@
   "findProcessOffDesc": "無効にするとプロセスルールは機能しません。より効率的",
   "externalControllerPort": "外部制御ポート",
   "appNotInstalled": "アプリがインストールされていません",
-  "fileNotFound": "ファイルが存在しません"
+  "fileNotFound": "ファイルが存在しません",
+  "nodeFromProfile": "Extract from Profile",
+  "nodeFromProfileDesc": "Filter and extract nodes from an imported profile",
+  "selectNodes": "Select Nodes",
+  "allProtocols": "All",
+  "nodeExistsTag": "Exists",
+  "directBatchImport": "Import Directly",
+  "configureAndImport": "Configure & Import",
+  "selectAndConfigure": "Select & Configure",
+  "selectedNodesTitle": "Selected Nodes",
+  "reselectNodes": "Reselect",
+  "nodeSearchHint": "Search name, server or cipher",
+  "noMatchingNodes": "No matching nodes"
 }

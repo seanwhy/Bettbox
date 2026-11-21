@@ -1909,6 +1909,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "xattrUnsupportedFallback": MessageLookupByLibrary.simpleMessage(
       "檔案系統不支援檔案能力（xattr），已回退到 setuid",
     ),
+    "nodeFromProfile": MessageLookupByLibrary.simpleMessage("從已有設定提取"),
+    "nodeFromProfileDesc": MessageLookupByLibrary.simpleMessage("從已匯入的訂閱設定中篩選並提取節點"),
+    "selectNodes": MessageLookupByLibrary.simpleMessage("選擇節點"),
+    "allProtocols": MessageLookupByLibrary.simpleMessage("全部"),
+    "nodeExistsTag": MessageLookupByLibrary.simpleMessage("已存在"),
+    "directBatchImport": MessageLookupByLibrary.simpleMessage("直接匯入"),
+    "configureAndImport": MessageLookupByLibrary.simpleMessage("統一設定"),
+    "selectAndConfigure": MessageLookupByLibrary.simpleMessage("選擇並設定"),
+    "selectedNodesTitle": MessageLookupByLibrary.simpleMessage("已選節點"),
+    "reselectNodes": MessageLookupByLibrary.simpleMessage("重新選擇"),
+    "nodeSearchHint": MessageLookupByLibrary.simpleMessage("搜尋節點名、伺服器或加密方式"),
+    "noMatchingNodes": MessageLookupByLibrary.simpleMessage("沒有符合條件的節點"),
     "years": m76,
   };
 }

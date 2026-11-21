@@ -1318,5 +1318,17 @@
   "findProcessOffDesc": "Process rules no longer apply, more efficient",
   "externalControllerPort": "External Controller Port",
   "appNotInstalled": "App is not installed",
-  "fileNotFound": "File no longer exists"
+  "fileNotFound": "File no longer exists",
+  "nodeFromProfile": "Extract from Profile",
+  "nodeFromProfileDesc": "Filter and extract nodes from an imported profile",
+  "selectNodes": "Select Nodes",
+  "allProtocols": "All",
+  "nodeExistsTag": "Exists",
+  "directBatchImport": "Import Directly",
+  "configureAndImport": "Configure & Import",
+  "selectAndConfigure": "Select & Configure",
+  "selectedNodesTitle": "Selected Nodes",
+  "reselectNodes": "Reselect",
+  "nodeSearchHint": "Search name, server or cipher",
+  "noMatchingNodes": "No matching nodes"
 }

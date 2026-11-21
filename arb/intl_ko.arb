@@ -1319,5 +1319,17 @@
   "findProcessOffDesc": "사용하지 않으면 프로세스 규칙이 적용되지 않아 더 효율적입니다",
   "externalControllerPort": "외부 제어 포트",
   "appNotInstalled": "앱이 설치되어 있지 않습니다",
-  "fileNotFound": "파일이 더 이상 존재하지 않습니다"
+  "fileNotFound": "파일이 더 이상 존재하지 않습니다",
+  "nodeFromProfile": "Extract from Profile",
+  "nodeFromProfileDesc": "Filter and extract nodes from an imported profile",
+  "selectNodes": "Select Nodes",
+  "allProtocols": "All",
+  "nodeExistsTag": "Exists",
+  "directBatchImport": "Import Directly",
+  "configureAndImport": "Configure & Import",
+  "selectAndConfigure": "Select & Configure",
+  "selectedNodesTitle": "Selected Nodes",
+  "reselectNodes": "Reselect",
+  "nodeSearchHint": "Search name, server or cipher",
+  "noMatchingNodes": "No matching nodes"
 }

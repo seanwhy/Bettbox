@@ -1319,5 +1319,17 @@
   "findProcessOffDesc": "关闭后进程规则不再生效，更加高效",
   "externalControllerPort": "外部控制端口",
   "appNotInstalled": "应用未安装",
-  "fileNotFound": "文件已不存在"
+  "fileNotFound": "文件已不存在",
+  "nodeFromProfile": "从已有配置提取",
+  "nodeFromProfileDesc": "从已导入的订阅配置中筛选并提取节点",
+  "selectNodes": "选择节点",
+  "allProtocols": "全部",
+  "nodeExistsTag": "已存在",
+  "directBatchImport": "直接导入",
+  "configureAndImport": "统一配置",
+  "selectAndConfigure": "选择并配置",
+  "selectedNodesTitle": "已选节点",
+  "reselectNodes": "重新选择",
+  "nodeSearchHint": "搜索节点名、服务器或加密方式",
+  "noMatchingNodes": "没有符合条件的节点"
 }

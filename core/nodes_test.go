@@ -210,6 +210,8 @@ func TestParseNodes(t *testing.T) {
 		{"uri", uri, []string{"uri-node"}},
 		{"base64", base64.StdEncoding.EncodeToString([]byte(uri + "\n")), []string{"uri-node"}},
 		{"single", "name: one\ntype: socks5\nserver: 1.1.1.1\nport: 1080\ndialer-proxy: x", []string{"one"}},
+		{"indented-list", "  - name: ind-one\n    type: ss\n    server: 1.1.1.1\n    port: 44000\n    cipher: chacha20-ietf-poly1305\n    password: pass\n", []string{"ind-one"}},
+		{"trimmed-first-line-list", "- name: ind-two\n    type: ss\n    server: 1.1.1.1\n    port: 44000\n    cipher: chacha20-ietf-poly1305\n    password: pass\n", []string{"ind-two"}},
 		{"flow", "- {name: two, type: http, server: 1.1.1.1, port: 80}", []string{"two"}},
 		{"full", "mixed-port: 7890\nproxies:\n  - {name: three, type: socks5, server: 1.1.1.1, port: 1}\n  - {name: bad, type: nope}", []string{"three"}},
 	}

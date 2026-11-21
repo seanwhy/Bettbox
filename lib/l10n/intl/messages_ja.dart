@@ -2154,6 +2154,18 @@ class MessageLookup extends MessageLookupByLibrary {
     "xattrUnsupportedFallback": MessageLookupByLibrary.simpleMessage(
       "ファイルシステムがファイルケーパビリティ（xattr）に対応していないため、setuid にフォールバックしました",
     ),
+    "nodeFromProfile": MessageLookupByLibrary.simpleMessage("Extract from Profile"),
+    "nodeFromProfileDesc": MessageLookupByLibrary.simpleMessage("Filter and extract nodes from an imported profile"),
+    "selectNodes": MessageLookupByLibrary.simpleMessage("Select Nodes"),
+    "allProtocols": MessageLookupByLibrary.simpleMessage("All"),
+    "nodeExistsTag": MessageLookupByLibrary.simpleMessage("Exists"),
+    "directBatchImport": MessageLookupByLibrary.simpleMessage("Import Directly"),
+    "configureAndImport": MessageLookupByLibrary.simpleMessage("Configure & Import"),
+    "selectAndConfigure": MessageLookupByLibrary.simpleMessage("Select & Configure"),
+    "selectedNodesTitle": MessageLookupByLibrary.simpleMessage("Selected Nodes"),
+    "reselectNodes": MessageLookupByLibrary.simpleMessage("Reselect"),
+    "nodeSearchHint": MessageLookupByLibrary.simpleMessage("Search name, server or cipher"),
+    "noMatchingNodes": MessageLookupByLibrary.simpleMessage("No matching nodes"),
     "years": m76,
   };
 }

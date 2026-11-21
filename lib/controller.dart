@@ -836,6 +836,14 @@ class AppController {
     ];
   }
 
+  Future<List<Map<String, dynamic>>> parseProxyList(String text) =>
+      _parseNodes(text);
+
+  List<ProxyNode> buildNodesFromProxies(List<Map<String, dynamic>> proxies) {
+    final names = {for (final node in _ref.read(nodesProvider)) node.name};
+    return [for (final proxy in proxies) _createNode(proxy, names)];
+  }
+
   Future<ProxyNode> parseNode(String text) async {
     final proxies = await _parseNodes(text);
     if (proxies.length != 1) throw appLocalizations.nodeImportSingle;

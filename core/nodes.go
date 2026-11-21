@@ -68,18 +68,103 @@ func nodeMappings(value any) []map[string]any {
 	return nil
 }
 
+func dedentLines(text string) string {
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	rawLines := strings.Split(text, "\n")
+	start := 0
+	for start < len(rawLines) && strings.TrimSpace(rawLines[start]) == "" {
+		start++
+	}
+	end := len(rawLines)
+	for end > start && strings.TrimSpace(rawLines[end-1]) == "" {
+		end--
+	}
+	lines := rawLines[start:end]
+	if len(lines) == 0 {
+		return ""
+	}
+	minIndent := -1
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		indent := 0
+		for indent < len(line) && (line[indent] == ' ' || line[indent] == '\t') {
+			indent++
+		}
+		if minIndent == -1 || indent < minIndent {
+			minIndent = indent
+		}
+	}
+	if minIndent > 0 {
+		for i, line := range lines {
+			if strings.TrimSpace(line) == "" {
+				lines[i] = ""
+			} else if len(line) >= minIndent {
+				lines[i] = line[minIndent:]
+			}
+		}
+	}
+	return strings.Join(lines, "\n")
+}
+
+func normalizeSingleListItem(text string) string {
+	lines := strings.Split(text, "\n")
+	if len(lines) < 2 || !strings.HasPrefix(lines[0], "- ") {
+		return text
+	}
+	minIndent := -1
+	for _, line := range lines[1:] {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		indent := 0
+		for indent < len(line) && (line[indent] == ' ' || line[indent] == '\t') {
+			indent++
+		}
+		if minIndent == -1 || indent < minIndent {
+			minIndent = indent
+		}
+	}
+	if minIndent <= 2 {
+		return text
+	}
+	shift := minIndent - 2
+	out := make([]string, len(lines))
+	out[0] = lines[0]
+	for i := 1; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) == "" {
+			out[i] = ""
+		} else if len(lines[i]) >= shift {
+			out[i] = lines[i][shift:]
+		} else {
+			out[i] = lines[i]
+		}
+	}
+	return strings.Join(out, "\n")
+}
+
 func parseNodes(text string) ([]map[string]any, int, error) {
-	text = strings.TrimSpace(text)
-	if text == "" {
+	dedented := dedentLines(text)
+	if dedented == "" {
 		return nil, 0, errors.New("empty content")
 	}
 	var mappings []map[string]any
 	var decoded any
-	if err := yaml.Unmarshal([]byte(text), &decoded); err == nil {
+	if err := yaml.Unmarshal([]byte(dedented), &decoded); err == nil {
 		mappings = nodeMappings(decoded)
 	}
 	if len(mappings) == 0 {
-		converted, err := convert.ConvertsV2Ray([]byte(text))
+		normalized := normalizeSingleListItem(dedented)
+		if normalized != dedented {
+			decoded = nil
+			if err := yaml.Unmarshal([]byte(normalized), &decoded); err == nil {
+				mappings = nodeMappings(decoded)
+			}
+		}
+	}
+	if len(mappings) == 0 {
+		converted, err := convert.ConvertsV2Ray([]byte(strings.TrimSpace(dedented)))
 		if err != nil {
 			return nil, 0, err
 		}

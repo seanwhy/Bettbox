@@ -1319,5 +1319,17 @@
   "findProcessOffDesc": "با غیرفعال‌سازی، قوانین پردازش اعمال نمی‌شوند؛ کارآمدتر",
   "externalControllerPort": "پورت کنترل خارجی",
   "appNotInstalled": "برنامه نصب نشده است",
-  "fileNotFound": "فایل دیگر وجود ندارد"
+  "fileNotFound": "فایل دیگر وجود ندارد",
+  "nodeFromProfile": "Extract from Profile",
+  "nodeFromProfileDesc": "Filter and extract nodes from an imported profile",
+  "selectNodes": "Select Nodes",
+  "allProtocols": "All",
+  "nodeExistsTag": "Exists",
+  "directBatchImport": "Import Directly",
+  "configureAndImport": "Configure & Import",
+  "selectAndConfigure": "Select & Configure",
+  "selectedNodesTitle": "Selected Nodes",
+  "reselectNodes": "Reselect",
+  "nodeSearchHint": "Search name, server or cipher",
+  "noMatchingNodes": "No matching nodes"
 }

@@ -11203,6 +11203,115 @@ class AppLocalizations {
       args: [],
     );
   }
+
+  /// `Extract from Profile`
+  String get nodeFromProfile {
+    return Intl.message(
+      'Extract from Profile',
+      name: 'nodeFromProfile',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Filter and extract nodes from an imported profile`
+  String get nodeFromProfileDesc {
+    return Intl.message(
+      'Filter and extract nodes from an imported profile',
+      name: 'nodeFromProfileDesc',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Select Nodes`
+  String get selectNodes {
+    return Intl.message(
+      'Select Nodes',
+      name: 'selectNodes',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `All`
+  String get allProtocols {
+    return Intl.message(
+      'All',
+      name: 'allProtocols',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Exists`
+  String get nodeExistsTag {
+    return Intl.message(
+      'Exists',
+      name: 'nodeExistsTag',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Import Directly`
+  String get directBatchImport {
+    return Intl.message(
+      'Import Directly',
+      name: 'directBatchImport',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Configure & Import`
+  String get configureAndImport {
+    return Intl.message(
+      'Configure & Import',
+      name: 'configureAndImport',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Select & Configure`
+  String get selectAndConfigure {
+    return Intl.message(
+      'Select & Configure',
+      name: 'selectAndConfigure',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Selected Nodes`
+  String get selectedNodesTitle {
+    return Intl.message(
+      'Selected Nodes',
+      name: 'selectedNodesTitle',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Reselect`
+  String get reselectNodes {
+    return Intl.message(
+      'Reselect',
+      name: 'reselectNodes',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `Search name, server or cipher`
+  String get nodeSearchHint {
+    return Intl.message(
+      'Search name, server or cipher',
+      name: 'nodeSearchHint',
+      desc: '',
+      args: [],
+    );
+  }
+  /// `No matching nodes`
+  String get noMatchingNodes {
+    return Intl.message(
+      'No matching nodes',
+      name: 'noMatchingNodes',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<AppLocalizations> {
