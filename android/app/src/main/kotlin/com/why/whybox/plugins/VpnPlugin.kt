@@ -653,7 +653,9 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                     cm.registerBestMatchingNetworkCallback(request, defaultNetworkCallback, handler)
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.P ->
                     cm.requestNetwork(request, defaultNetworkCallback, handler)
-                else -> cm.registerDefaultNetworkCallback(defaultNetworkCallback, handler)
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
+                    cm.registerDefaultNetworkCallback(defaultNetworkCallback, handler)
+                else -> cm.registerDefaultNetworkCallback(defaultNetworkCallback)
             }
         }.onFailure {
             android.util.Log.e("VpnPlugin", "Failed to register default network callback: ${it.message}")
@@ -723,21 +725,6 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
             android.util.Log.e("VpnPlugin", "startForeground error: ${e.message}")
         }
         ensureSpeedTicker()
-    }
-
-    fun updateNotificationIcon() {
-        scope.launch {
-            runCatching {
-                val context = WhyBoxApplication.getAppContext()
-                val notificationManager = context.getSystemService(android.app.NotificationManager::class.java)
-                notificationManager?.cancel(GlobalState.NOTIFICATION_ID)
-                (whyBoxService as? WhyBoxService)?.resetNotificationBuilder()
-                (whyBoxService as? WhyBoxVpnService)?.resetNotificationBuilder()
-                whyBoxService?.startForeground()
-            }.onFailure {
-                android.util.Log.e("VpnPlugin", "updateNotificationIcon error: ${it.message}")
-            }
-        }
     }
 
     fun handleUpdateNotificationSpeed(profileName: String, speedInfo: String) {
@@ -830,7 +817,18 @@ data object VpnPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
 
     private fun handleStartService() {
         if (GlobalState.isCurrentlyStopping()) {
-            android.util.Log.w("VpnPlugin", "VPN is in stopping state, ignore start request")
+            android.util.Log.w("VpnPlugin", "VPN is in stopping state, delay start request")
+            scope.launch {
+                repeat(10) {
+                    delay(100)
+                    if (!GlobalState.isCurrentlyStopping()) {
+                        handleStartService()
+                        return@launch
+                    }
+                }
+                GlobalState.updateRunState(RunState.STOP)
+                ServicePlugin.notifyVpnStartFailed()
+            }
             return
         }
         if (whyBoxService == null) {

@@ -119,6 +119,7 @@ func updateListeners() {
 	listeners := currentConfig.Listeners
 	general := currentConfig.General
 	listener.PatchInboundListeners(listeners, tunnel.Tunnel, true)
+	listener.PatchTunnel(currentConfig.Tunnels, tunnel.Tunnel)
 	listener.SetAllowLan(general.AllowLan)
 	inbound.SetSkipAuthPrefixes(general.SkipAuthPrefixes)
 	if general.AllowLan {
@@ -537,6 +538,7 @@ func setupConfig(params *SetupParams) (global string, err error) {
 	currentRawConfig = residentRawConfig(prepared.rawCfg)
 	hub.ApplyConfig(currentConfig)
 	closeIdleOutbounds(oldProxies, oldProviders)
+	closeStaleWireGuards(oldProxies, oldProviders)
 	resetGroupShapes()
 	resetDelayState()
 	selectedMap := params.SelectedMap

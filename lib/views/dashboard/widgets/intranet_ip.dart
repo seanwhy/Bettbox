@@ -258,7 +258,7 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
               color: iconColor.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 14, color: iconColor),
+            child: Icon(context.resolveIcon(icon), size: 14, color: iconColor),
           ),
           const SizedBox(width: 8),
           Expanded(
@@ -315,7 +315,7 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
               shape: BoxShape.circle,
             ),
             child: Icon(
-              Icons.share_rounded,
+              context.resolveIcon(Icons.share_rounded),
               size: 14,
               color: allowLan ? Colors.green : context.colorScheme.outline,
             ),
@@ -353,7 +353,11 @@ class _IntranetIpInfoDialogState extends ConsumerState<_IntranetIpInfoDialog> {
       visualDensity: VisualDensity.compact,
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-      icon: Icon(icon, size: 15, color: context.colorScheme.onSurfaceVariant),
+      icon: Icon(
+        context.resolveIcon(icon),
+        size: 15,
+        color: context.colorScheme.onSurfaceVariant,
+      ),
       tooltip: tooltip,
       onPressed: onPressed,
     );
