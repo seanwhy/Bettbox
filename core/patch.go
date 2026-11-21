@@ -15,6 +15,7 @@ import (
 	"github.com/metacubex/mihomo/common/utils"
 	"github.com/metacubex/mihomo/common/yaml"
 	"github.com/metacubex/mihomo/config"
+	C "github.com/metacubex/mihomo/constant"
 	LC "github.com/metacubex/mihomo/listener/config"
 )
 
@@ -244,12 +245,59 @@ func loopbackAddress(address string) string {
 	return net.JoinHostPort("127.0.0.1", port)
 }
 
+func ensureLocalhostFakeIPBypass(raw *config.RawConfig) {
+	if !raw.DNS.Enable || raw.DNS.EnhancedMode != C.DNSFakeIP {
+		return
+	}
+	hasEntry := func(items []string, target string) bool {
+		for _, item := range items {
+			if strings.EqualFold(strings.TrimSpace(item), target) {
+				return true
+			}
+		}
+		return false
+	}
+	switch raw.DNS.FakeIPFilterMode {
+	case C.FilterBlackList:
+		for _, pattern := range []string{"localhost", "*.localhost"} {
+			if !hasEntry(raw.DNS.FakeIPFilter, pattern) {
+				raw.DNS.FakeIPFilter = append(raw.DNS.FakeIPFilter, pattern)
+			}
+		}
+	case C.FilterRule:
+		var prefix []string
+		for _, rule := range []string{"DOMAIN,localhost,real-ip", "DOMAIN-SUFFIX,localhost,real-ip"} {
+			if !hasEntry(raw.DNS.FakeIPFilter, rule) {
+				prefix = append(prefix, rule)
+			}
+		}
+		if len(prefix) > 0 {
+			raw.DNS.FakeIPFilter = append(prefix, raw.DNS.FakeIPFilter...)
+		}
+	}
+	hasLocalhost := false
+	for key := range raw.Hosts {
+		if strings.EqualFold(strings.TrimSpace(key), "localhost") {
+			hasLocalhost = true
+			break
+		}
+	}
+	if !hasLocalhost {
+		if raw.Hosts == nil {
+			raw.Hosts = make(map[string]any, 1)
+		}
+		raw.Hosts["localhost"] = "127.0.0.1"
+	}
+	raw.DNS.UseHosts = true
+}
+
 func patchDns(raw *config.RawConfig) {
 	raw.DNS.FallbackFilter.GeoSite = []string{}
 	raw.DNS.FallbackFilter.Domain = []string{}
 	if !raw.IPv6 {
 		raw.DNS.IPv6 = false
 	}
+	ensureLocalhostFakeIPBypass(raw)
 
 	if !patchForAndroid {
 		return

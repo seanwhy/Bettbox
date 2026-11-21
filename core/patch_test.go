@@ -749,3 +749,31 @@ rules:
 		t.Fatalf("rules without fallback = %v", rawCfg.Rule)
 	}
 }
+
+func TestPatchDnsBypassesLocalhostFakeIP(t *testing.T) {
+	rawCfg := parsePatchProfile(t, `
+dns:
+  enable: true
+  use-hosts: false
+  enhanced-mode: fake-ip
+  fake-ip-filter:
+    - "*.lan"
+proxies:
+  - {name: Node, type: ss, server: a.com, port: 1, cipher: aes-128-gcm, password: p}
+rules:
+  - MATCH,DIRECT
+`)
+	if _, err := applyPatch(rawCfg, patchParams(t, `{}`)); err != nil {
+		t.Fatal(err)
+	}
+	if !rawCfg.DNS.UseHosts {
+		t.Fatalf("expected dns.use-hosts to be enabled for localhost bypass")
+	}
+	if got := rawCfg.Hosts["localhost"]; got != "127.0.0.1" {
+		t.Fatalf("hosts[localhost] = %v, want 127.0.0.1", got)
+	}
+	wantFilter := []string{"*.lan", "localhost", "*.localhost"}
+	if !reflect.DeepEqual(rawCfg.DNS.FakeIPFilter, wantFilter) {
+		t.Fatalf("fake-ip-filter = %v, want %v", rawCfg.DNS.FakeIPFilter, wantFilter)
+	}
+}
