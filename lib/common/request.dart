@@ -280,7 +280,7 @@ class Request {
     } on DioException catch (e) {
       if (e.error is! HandshakeException) rethrow;
       commonPrint.log('TLS verification failed, retrying through core: $e');
-      final proxy = BettboxHttpOverrides.handleFindProxy(Uri.parse(requestUrl));
+      final proxy = WhyBoxHttpOverrides.handleFindProxy(Uri.parse(requestUrl));
       final responseHeaders = await clashCore.downloadProfile(
         url: requestUrl,
         output: downloadPath,

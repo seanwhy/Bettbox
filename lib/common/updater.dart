@@ -47,7 +47,7 @@ open "\$3"
         ..httpClientAdapter = IOHttpClientAdapter(
           createHttpClient: () {
             final client = HttpClient();
-            client.findProxy = BettboxHttpOverrides.handleFindProxy;
+            client.findProxy = WhyBoxHttpOverrides.handleFindProxy;
             return client;
           },
         );
