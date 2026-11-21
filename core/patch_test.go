@@ -777,3 +777,34 @@ rules:
 		t.Fatalf("fake-ip-filter = %v, want %v", rawCfg.DNS.FakeIPFilter, wantFilter)
 	}
 }
+
+func TestPatchDnsEnablesFallbackOnAndroidWithoutDnsSection(t *testing.T) {
+	previous := patchForAndroid
+	patchForAndroid = true
+	defer func() { patchForAndroid = previous }()
+
+	rawCfg := parsePatchProfile(t, `
+proxies:
+  - {name: Node, type: ss, server: a.com, port: 1, cipher: aes-128-gcm, password: p}
+rules:
+  - MATCH,DIRECT
+`)
+	if _, err := applyPatch(rawCfg, patchParams(t, `{}`)); err != nil {
+		t.Fatal(err)
+	}
+	if !rawCfg.DNS.Enable {
+		t.Fatalf("expected Android DNS fallback to enable dns")
+	}
+	if rawCfg.DNS.EnhancedMode != constant.DNSFakeIP {
+		t.Fatalf("enhanced-mode = %v, want fake-ip", rawCfg.DNS.EnhancedMode)
+	}
+	if got := rawCfg.Hosts["localhost"]; got != "127.0.0.1" {
+		t.Fatalf("hosts[localhost] = %v, want 127.0.0.1", got)
+	}
+	if !hasStringFold(rawCfg.DNS.FakeIPFilter, "localhost") {
+		t.Fatalf("fake-ip-filter missing localhost: %v", rawCfg.DNS.FakeIPFilter)
+	}
+	if !hasStringFold(rawCfg.DNS.NameServer, "system://") {
+		t.Fatalf("nameserver missing system://: %v", rawCfg.DNS.NameServer)
+	}
+}

@@ -245,34 +245,77 @@ func loopbackAddress(address string) string {
 	return net.JoinHostPort("127.0.0.1", port)
 }
 
-func ensureLocalhostFakeIPBypass(raw *config.RawConfig) {
-	if !raw.DNS.Enable || raw.DNS.EnhancedMode != C.DNSFakeIP {
+func hasStringFold(items []string, target string) bool {
+	for _, item := range items {
+		if strings.EqualFold(strings.TrimSpace(item), target) {
+			return true
+		}
+	}
+	return false
+}
+
+func ensureTunDnsFallback(raw *config.RawConfig) {
+	if raw.DNS.Enable || (!patchForAndroid && !raw.Tun.Enable) {
 		return
 	}
-	hasEntry := func(items []string, target string) bool {
-		for _, item := range items {
-			if strings.EqualFold(strings.TrimSpace(item), target) {
-				return true
-			}
-		}
-		return false
+	raw.DNS.Enable = true
+	if raw.DNS.Listen == "" {
+		raw.DNS.Listen = "0.0.0.0:10053"
 	}
-	switch raw.DNS.FakeIPFilterMode {
-	case C.FilterBlackList:
-		for _, pattern := range []string{"localhost", "*.localhost"} {
-			if !hasEntry(raw.DNS.FakeIPFilter, pattern) {
+	if raw.DNS.EnhancedMode == C.DNSNormal || raw.DNS.EnhancedMode == C.DNSMapping {
+		raw.DNS.EnhancedMode = C.DNSFakeIP
+	}
+	if raw.DNS.FakeIPRange == "" {
+		raw.DNS.FakeIPRange = "198.18.0.1/15"
+	}
+	raw.DNS.UseHosts = true
+	raw.DNS.UseSystemHosts = true
+	if len(raw.DNS.DefaultNameserver) == 0 {
+		raw.DNS.DefaultNameserver = []string{"223.5.5.5", "119.29.29.29"}
+	}
+	if len(raw.DNS.NameServer) == 0 {
+		raw.DNS.NameServer = []string{
+			"https://doh.pub/dns-query",
+			"https://dns.alidns.com/dns-query",
+		}
+	}
+	if !hasStringFold(raw.DNS.NameServer, "system://") {
+		raw.DNS.NameServer = append(raw.DNS.NameServer, "system://")
+	}
+	if raw.DNS.RespectRules && len(raw.DNS.ProxyServerNameserver) == 0 {
+		raw.DNS.ProxyServerNameserver = append([]string(nil), raw.DNS.DefaultNameserver...)
+	}
+	if raw.DNS.FakeIPFilterMode == C.FilterBlackList {
+		for _, pattern := range []string{"*.lan", "*.local"} {
+			if !hasStringFold(raw.DNS.FakeIPFilter, pattern) {
 				raw.DNS.FakeIPFilter = append(raw.DNS.FakeIPFilter, pattern)
 			}
 		}
-	case C.FilterRule:
-		var prefix []string
-		for _, rule := range []string{"DOMAIN,localhost,real-ip", "DOMAIN-SUFFIX,localhost,real-ip"} {
-			if !hasEntry(raw.DNS.FakeIPFilter, rule) {
-				prefix = append(prefix, rule)
+	}
+}
+
+func ensureLocalhostFakeIPBypass(raw *config.RawConfig) {
+	if !raw.DNS.Enable {
+		return
+	}
+	if raw.DNS.EnhancedMode == C.DNSFakeIP {
+		switch raw.DNS.FakeIPFilterMode {
+		case C.FilterBlackList:
+			for _, pattern := range []string{"localhost", "*.localhost"} {
+				if !hasStringFold(raw.DNS.FakeIPFilter, pattern) {
+					raw.DNS.FakeIPFilter = append(raw.DNS.FakeIPFilter, pattern)
+				}
 			}
-		}
-		if len(prefix) > 0 {
-			raw.DNS.FakeIPFilter = append(prefix, raw.DNS.FakeIPFilter...)
+		case C.FilterRule:
+			var prefix []string
+			for _, rule := range []string{"DOMAIN,localhost,real-ip", "DOMAIN-SUFFIX,localhost,real-ip"} {
+				if !hasStringFold(raw.DNS.FakeIPFilter, rule) {
+					prefix = append(prefix, rule)
+				}
+			}
+			if len(prefix) > 0 {
+				raw.DNS.FakeIPFilter = append(prefix, raw.DNS.FakeIPFilter...)
+			}
 		}
 	}
 	hasLocalhost := false
@@ -292,6 +335,7 @@ func ensureLocalhostFakeIPBypass(raw *config.RawConfig) {
 }
 
 func patchDns(raw *config.RawConfig) {
+	ensureTunDnsFallback(raw)
 	raw.DNS.FallbackFilter.GeoSite = []string{}
 	raw.DNS.FallbackFilter.Domain = []string{}
 	if !raw.IPv6 {
